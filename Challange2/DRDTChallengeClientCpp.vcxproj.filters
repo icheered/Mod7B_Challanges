@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\framework">
+      <UniqueIdentifier>{6474d46f-4b8a-45ca-88f0-16a893445a10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\my_protocol">
+      <UniqueIdentifier>{b9c9cbd3-558f-4c54-9d60-69338e566242}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\framework">
+      <UniqueIdentifier>{bb8e1d5b-5cf8-40d7-9458-e70fe3a4bb39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\my_protocol">
+      <UniqueIdentifier>{731a7680-5c5c-45b9-9d56-5372c403a94f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="framework\base64.cpp">
+      <Filter>Source Files\framework</Filter>
+    </ClCompile>
+    <ClCompile Include="my_protocol\Program.cpp">
+      <Filter>Source Files\my_protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="framework\crc32.cpp">
+      <Filter>Source Files\framework</Filter>
+    </ClCompile>
+    <ClCompile Include="framework\DRDTChallengeClient.cpp">
+      <Filter>Source Files\framework</Filter>
+    </ClCompile>
+    <ClCompile Include="framework\NetworkLayer.cpp">
+      <Filter>Source Files\framework</Filter>
+    </ClCompile>
+    <ClCompile Include="framework\timer.cpp">
+      <Filter>Source Files\framework</Filter>
+    </ClCompile>
+    <ClCompile Include="framework\Utils.cpp">
+      <Filter>Source Files\framework</Filter>
+    </ClCompile>
+    <ClCompile Include="my_protocol\MyProtocol.cpp">
+      <Filter>Source Files\my_protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="my_protocol\DummyProtocol.cpp">
+      <Filter>Source Files\my_protocol</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework\base64.h">
+      <Filter>Header Files\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\crc32.h">
+      <Filter>Header Files\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\DRDTChallengeClient.h">
+      <Filter>Header Files\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\ITimeoutEventHandler.h">
+      <Filter>Header Files\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\ITimeoutHandler.h">
+      <Filter>Header Files\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\NetworkLayer.h">
+      <Filter>Header Files\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\timer.h">
+      <Filter>Header Files\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\Utils.h">
+      <Filter>Header Files\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\IRDTProtocol.h">
+      <Filter>Header Files\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="my_protocol\MyProtocol.h">
+      <Filter>Header Files\my_protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="my_protocol\DummyProtocol.h">
+      <Filter>Header Files\my_protocol</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="rdtcInput1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="rdtcInput2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="rdtcInput3.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="rdtcInput4.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="rdtcInput5.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="rdtcInput6.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,1 @@
+g++ -std=c++14 -pthread -lpthread -o run framework/*.cpp framework/*.h 
