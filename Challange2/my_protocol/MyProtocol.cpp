@@ -85,44 +85,11 @@ namespace my_protocol {
 
 
         while (!stop) {
-            // send the packet to the network layer
-            //networkLayer->sendPacket(pkt);
-            //std::cout << "Sent one packet with header=" << pkt[0] << std::endl;
-
-            /*bool acked = false;
-            unsigned int silence = 0;
-            while(!acked){    //waiting for aknowledgment
-                std::vector<int32_t> packet;
-                if (networkLayer->receivePacket(&packet)) {
-                    // tell the user
-                    std::cout << "Received ack, length=" << packet.size() << "  first byte=" << packet[0] << std::endl;
-                    if(packet[0] == seq){
-                        acked = true;
-                    }
-                }
-                else {
-                    // sleep for ~10ms (or however long the OS makes us wait)
-                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-                    silence++;
-                }
-                if(silence > 70){
-                    networkLayer->sendPacket(pkt);
-                    std::cout << "Retransmitting one packet with header=" << pkt[0] << std::endl;
-                    silence = 0;
-                }
-            }
-            if (seq < MAXseq) seq++; else seq = MINseq;  //increasing seq in circular way
-            if(((uint32_t)fileContents.size() - filePointer) == 0){
-                done = true;
-            }
-            */
-            if (LFS <= (LARcount + SWS)) {
-                if (LFS <= packetBuffer.size()) {
-                    networkLayer->sendPacket(packetBuffer.at(LFS));
-                    std::cout << "send packet " << LFS << std::endl;
-                    framework::SetTimeout(1000, this, LFS);
-                    LFS++;
-                }
+            if ((LFS <= (LARcount + SWS)) and (LFS < (int)packetBuffer.size())) {
+                networkLayer->sendPacket(packetBuffer[LFS]);
+                std::cout << "send packet " << LFS << std::endl;
+                framework::SetTimeout(1000, this, LFS);
+                LFS++;
             }
             if (networkLayer->receivePacket(&acknowledgement)) {
                 // tell the user
@@ -132,8 +99,6 @@ namespace my_protocol {
                     LARcount++;
                 }
             }
-
-
         }
         // schedule a timer for 1000 ms into the future, just to show how that works:
         //framework::SetTimeout(1000, this, 28);
@@ -168,11 +133,10 @@ namespace my_protocol {
             // If we indeed received a packet
             if (networkLayer->receivePacket(&packet)) {
                 silence = 0;
-            
                 if((packet[0] >= LOWseq && packet[0] < HIGHseq) or (packet[0] < HIGHseq-HEADERSIZE*256)){
                     // Packet fits in the buffer array
                     std::cout << "Received packet: " << packet[0] << std::endl;
-                    if(packet[0] < HIGHseq-HEADERSIZE*256){
+                    if(packet[0] > SWS && packet[0] < HIGHseq-HEADERSIZE*256){
                         buffer[HEADERSIZE*256 - LOWseq + packet[0]] = packet; //Insert it at the right location
                     }
                     else{
@@ -220,7 +184,7 @@ namespace my_protocol {
                 silence++;
             }
 
-            if(silence > 50000){
+            if(silence > 500){
                 stop = true;
             }
 
