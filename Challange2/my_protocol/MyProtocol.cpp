@@ -61,9 +61,10 @@ namespace my_protocol {
 
         unsigned char seq = MINseq;
         LAR = seq-1;
+        LARcount = LAR;
         LFS = seq;
 
-        // create a new packet of appropriate size
+        // create a new packetbuffer of appropriate size
         // copy databytes from the input file into data part of the packet for every packet in the packet buffer, i.e., after the header
         std::cout << "Before double assignment" << std::endl;
         uint32_t datalen;
@@ -85,20 +86,23 @@ namespace my_protocol {
 
 
         while (!stop) {
-            if ((LFS <= (LARcount + SWS)) and (LFS < (int)packetBuffer.size())) {
-                networkLayer->sendPacket(packetBuffer[LFS]);
+            if ((LFS <= (LARcount + SWS)) and (LFS < (int)packetBuffer.size())) { //sends packets aslong as in range of sws and aslong as there are packets in the packetbuffer
+                networkLayer->sendPacket(packetBuffer.at(LFS));
                 std::cout << "send packet " << LFS << std::endl;
                 framework::SetTimeout(1000, this, LFS);
                 LFS++;
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
-            if (networkLayer->receivePacket(&acknowledgement)) {
+            if (networkLayer->receivePacket(&acknowledgement)) { //receives acknowldedgments and increases the LAR and LARcount if applicable
                 // tell the user
                 std::cout << "Received ack, length=" << acknowledgement.size() << "  first byte=" << acknowledgement[0] << std::endl;
                 if ((LAR + 1) % MAXseq == acknowledgement[0]) {
                     LAR = acknowledgement[0];
                     LARcount++;
                 }
+                std::cout << "LARcount is now: " << LARcount << std::endl;
             }
+
         }
         // schedule a timer for 1000 ms into the future, just to show how that works:
         //framework::SetTimeout(1000, this, 28);
@@ -196,7 +200,7 @@ namespace my_protocol {
     }
 
     void MyProtocol::TimeoutElapsed(int32_t tag) {
-        if (LARcount < tag) {
+        if (LARcount < tag) { //If the packet was not yet acknowldeged resend it and set a new timer
             networkLayer->sendPacket(packetBuffer[(int32_t)tag]);
             framework::SetTimeout(1000, this, tag);
         }
