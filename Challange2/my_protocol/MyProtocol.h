@@ -52,7 +52,7 @@ namespace my_protocol {
         framework::NetworkLayer* networkLayer;
         bool stop = false;
         const uint32_t HEADERSIZE = 1;   // number of header bytes in each packet
-        const uint32_t DATASIZE = 256;   // max. number of user data bytes in each packet
+        const uint32_t DATASIZE = 128;   // max. number of user data bytes in each packet
     };
 
 } /* namespace my_protocol */

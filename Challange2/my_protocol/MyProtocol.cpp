@@ -61,6 +61,7 @@ void MyProtocol::sender() {
 
         unsigned char seq = MINseq;
         LAR = seq-1;
+        LARcount = LAR;
         LFS = seq;
 
         // create a new packet of appropriate size
@@ -83,17 +84,18 @@ void MyProtocol::sender() {
         std::cout << "The packet buffer holds " << (int)packetBuffer.size() << " Elements." << std::endl;
 
 
-
         while (!stop) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
             if ((LFS <= (LARcount + SWS)) and (LFS < (int)packetBuffer.size())) {
                 networkLayer->sendPacket(packetBuffer[LFS]);
                 std::cout << "send packet " << LFS << std::endl;
-                framework::SetTimeout(1000, this, LFS);
+                framework::SetTimeout(700, this, LFS);
                 LFS++;
+                
             }
             if (networkLayer->receivePacket(&acknowledgement)) {
                 // tell the user
-                std::cout << "Received ack, length=" << acknowledgement.size() << "  first byte=" << acknowledgement[0] << std::endl;
+                std::cout << "Received ack: " << acknowledgement[0] << std::endl;
                 if ((LAR + 1) % MAXseq == acknowledgement[0]) {
                     LAR = acknowledgement[0];
                     LARcount++;
@@ -108,6 +110,7 @@ void MyProtocol::sender() {
     }
 
     std::vector<int32_t> MyProtocol::receiver() {
+        int windowsize = 10;
         std::cout << "Receiving..." << std::endl;
 
         // create the array that will contain the file contents
@@ -119,27 +122,40 @@ void MyProtocol::sender() {
         bool stop = false;
         //unsigned int silence = 0;
 
-        unsigned char HIGHseq = SWS;     // High value of SWS, exclusive
-        unsigned char LOWseq = 0;       // Low value of SWS, inclusive
+        int HIGHseq = windowsize;     // High value of SWS, exclusive
+        int LOWseq = 0;       // Low value of SWS, inclusive
+        std::cout << "HIGHseq: " << windowsize << std::endl;
+        std::cout << "Lowseq: " << LOWseq << std::endl;
+        
 
-        std::vector<int32_t> buffer[SWS]; //Buffer array
+        std::vector<int32_t> buffer[windowsize]; //Buffer array
+        std::cout << "Size of buffer: " << sizeof(buffer) << std::endl;
+
         int silence = 0;
 
 
         while (!stop) {
-
             // Try to receive a packet from the network layer
+            //std::cout << "Check3" << std::endl;
             std::vector<int32_t> packet;
             // If we indeed received a packet
             if (networkLayer->receivePacket(&packet)) {
+                //std::cout << "Check4" << std::endl;
                 silence = 0;
-                if((packet[0] >= LOWseq && packet[0] < HIGHseq) or (packet[0] < HIGHseq-HEADERSIZE*256)){
-                    // Packet fits in the buffer array
+                //std::cout << "LOWseqhere: " << LOWseq << std::endl;
+                //std::cout << "HIGHseq: " << HIGHseq << std::endl;
+                //std::cout << "packet[0]" << packet[0] << std::endl;
+
+                if(packet[0] >= LOWseq && packet[0] < HIGHseq){
                     std::cout << "Received packet: " << packet[0] << std::endl;
-                    if(packet[0] > SWS && packet[0] < HIGHseq-HEADERSIZE*256){
+                    //std::cout << "1" << std::endl;
+                    if(packet[0] > 10 && packet[0] < (int)(std::max(int(HIGHseq-HEADERSIZE*256), 0))){
+                        //std::cout << "2" << std::endl;
                         buffer[HEADERSIZE*256 - LOWseq + packet[0]] = packet; //Insert it at the right location
+                        //std::cout << "3" << std::endl;
                     }
                     else{
+                        //std::cout << "4" << std::endl;
                         buffer[packet[0]-LOWseq] = packet; //Insert it at the right location
                     }
                     // Send ack message
@@ -147,8 +163,28 @@ void MyProtocol::sender() {
                     pkt[0] = packet[0];
                     networkLayer->sendPacket(pkt);
                     std::cout << "Sent ack: " << pkt[0] << std::endl;
-                }
-                else if(packet[0] < LOWseq) {
+                } else if(packet[0] < int(std::max(int(HIGHseq-HEADERSIZE*256), 0))){
+                    //std::cout << "Check5" << std::endl;
+                    // Packet fits in the buffer array
+                    std::cout << "Received packet: " << packet[0] << std::endl;
+                    //std::cout << "1" << std::endl;
+                    if(packet[0] > 10 && packet[0] < (int)(std::max(int(HIGHseq-HEADERSIZE*256), 0))){
+                        //std::cout << "2" << std::endl;
+                        buffer[HEADERSIZE*256 - LOWseq + packet[0]] = packet; //Insert it at the right location
+                        //std::cout << "3" << std::endl;
+                    }
+                    else{
+                        //std::cout << "4" << std::endl;
+                        buffer[packet[0]-LOWseq] = packet; //Insert it at the right location
+                    }
+                    // Send ack message
+                    std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE);
+                    pkt[0] = packet[0];
+                    networkLayer->sendPacket(pkt);
+                    std::cout << "Sent ack: " << pkt[0] << std::endl;
+                } else if(packet[0] < LOWseq) {
+                    //std::cout << "Check6" << std::endl;
+                    std::cout << "Lowseq: " << LOWseq << std::endl;
                     // Receiving an already handled package
                     // Resend ack message
                     std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE);
@@ -157,15 +193,21 @@ void MyProtocol::sender() {
                     std::cout << "Sent ack: " << pkt[0] << std::endl;
                 }
 
-                // Check if the first package in the buffer is the next expected one
+                //Check if the first package in the buffer is the next expected one
+                // std::cout << "Buffer inc" << std::endl;
+                // std::cout << "Bufferlen: " << sizeof(buffer) << std::endl;
+                // std::cout << "Buffer: " << buffer[0][0] << std::endl;
+                // std::cout << "Lowseq: " << LOWseq << std::endl;
+                // std::cout << "HIGHseq" << HIGHseq << std::endl;
                 while(buffer[0][0] == LOWseq){
                     // Add to output file
-                    std::cout << "Adding to file... " << std::endl;
+                    std::cout << "Adding to file: " << buffer[0][0] << std::endl;
                     packet = buffer[0];
                     fileContents.insert(fileContents.end(), packet.begin() + HEADERSIZE, packet.end());
                     
                     // Shift all elements 1 place left
-                    for(int i = 0; i < SWS - 1; i++) {
+                    std::cout << "Shifting" << std::endl;
+                    for(int i = 0; i < windowsize - 1; i++) {
                         buffer[i] = buffer[i+1];
                     }
 
@@ -174,17 +216,18 @@ void MyProtocol::sender() {
                     HIGHseq++;
                     if(LOWseq > 255) {
                         LOWseq = 0;
-                        HIGHseq = SWS;
+                        HIGHseq = windowsize;
                     } 
                 }
+                //std::cout << "Check" << std::endl;
             }
             else {
                 // sleep for ~10ms (or however long the OS makes us wait)
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
                 silence++;
             }
-
-            if(silence > 500){
+            //std::cout << "Check2" << std::endl;
+            if(silence > 100){
                 stop = true;
             }
 
@@ -197,7 +240,11 @@ void MyProtocol::sender() {
 
     void MyProtocol::TimeoutElapsed(int32_t tag) {
         if (LARcount < tag) {
-            networkLayer->sendPacket(packetBuffer[(int32_t)tag]);
+            
+            std::vector<int32_t> packet = packetBuffer[(int32_t)tag];
+            std::cout << "Resending package: " << packet[0] << std::endl;
+            //std::cout << "Packet header: " <<  << std::endl;
+            networkLayer->sendPacket(packet);
             framework::SetTimeout(1000, this, tag);
         }
     }
