@@ -42,7 +42,7 @@ namespace my_protocol {
         this->stop = true;
     }
 
-void MyProtocol::sender() {
+    void MyProtocol::sender() {
         std::cout << "Sending..." << std::endl;
 
         // read from the input file
@@ -117,10 +117,12 @@ void MyProtocol::sender() {
             }
             */
             if (LFS <= (LARcount + SWS)) {
-                networkLayer->sendPacket(packetBuffer.at(LFS));
-                std::cout << "send packet " << LFS << std::endl;
-                framework::SetTimeout(1000, this, LFS);
-                LFS++;
+                if (LFS <= packetBuffer.size()) {
+                    networkLayer->sendPacket(packetBuffer.at(LFS));
+                    std::cout << "send packet " << LFS << std::endl;
+                    framework::SetTimeout(1000, this, LFS);
+                    LFS++;
+                }
             }
             if (networkLayer->receivePacket(&acknowledgement)) {
                 // tell the user
@@ -155,7 +157,7 @@ void MyProtocol::sender() {
         unsigned char HIGHseq = SWS;     // High value of SWS, exclusive
         unsigned char LOWseq = 0;       // Low value of SWS, inclusive
 
-        std::vector<int32_t> buffer[SWS]; //Buffer array
+        std::vector<int32_t> buffer[10]; //Buffer array
         int silence = 0;
 
 
