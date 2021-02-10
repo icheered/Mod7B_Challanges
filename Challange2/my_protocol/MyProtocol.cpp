@@ -114,7 +114,8 @@ namespace my_protocol {
             }
             */
             if (LFS <= (LARcount + SWS)) {
-                networkLayer->sendPacket(packetBuffer[(int32_t)LFS]);
+                networkLayer->sendPacket(packetBuffer.at(LFS));
+                std::cout << "send packet " << LFS << std::endl;
                 framework::SetTimeout(1000, this, LFS);
                 LFS++;
             }
