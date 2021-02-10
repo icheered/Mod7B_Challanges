@@ -45,7 +45,8 @@ namespace my_protocol {
         std::vector<int32_t> fileContents = framework::getFileContents(fileID);
         std::ostringstream ss;
         ss << fileContents.size();
-        std::cout << "File length: " << ss.str() << std::endl;
+        int sentpacks = int(std::stod(ss.str()) / DATASIZE) + 1;
+        std::cout << "File length: " << ss.str() << ". Expected nr of sent packages: " << sentpacks << std::endl;
 
 
         // keep track of where we are in the data
@@ -84,7 +85,7 @@ namespace my_protocol {
                     std::this_thread::sleep_for(std::chrono::milliseconds(10));
                     silence++;
                 }
-                if(silence==300){
+                if(silence > 70){
                     networkLayer->sendPacket(pkt);
                     std::cout << "Retransmitting one packet with header=" << pkt[0] << std::endl;
                     silence = 0;
@@ -119,7 +120,7 @@ namespace my_protocol {
         // loop until we are done receiving the file
         bool stop = false;
         unsigned int silence = 0;
-        uint8_t lastseq = 3;
+        int lastseq = 0;
         while (!stop) {
 
             // try to receive a packet from the network layer
@@ -130,14 +131,17 @@ namespace my_protocol {
 
                 // tell the user
                 std::cout << "Received packet, length=" << packet.size() << "  first byte=" << packet[0] << std::endl;
-                if(packet[0] != lastseq){
+                if(packet[0] == lastseq){
                 // append the packet's data part (excluding the header) to the fileContents array, first making it larger
+                    std::cout << "Adding to file... " << std::endl;
                     fileContents.insert(fileContents.end(), packet.begin() + HEADERSIZE, packet.end());
+                    lastseq++;
                 }
                 std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE);
                 pkt[0] = packet[0];
                 networkLayer->sendPacket(pkt);
                 std::cout << "Sent one ack: " << pkt[0] << std::endl;
+                silence = 0;
                 // and let's just hope the file is now complete
 
             }
@@ -146,8 +150,10 @@ namespace my_protocol {
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
                 silence++;
             }
-            if(silence==500){
+            if(silence > 500){
+                std::cout << "Timeout too long, Assume the file was send completely" << std::endl;
                 stop = true;
+                silence = 0;
             }
         }
 
