@@ -51,20 +51,52 @@ namespace my_protocol {
         // keep track of where we are in the data
         uint32_t filePointer = 0;
 
-        // create a new packet of appropriate size
-        uint32_t datalen = std::min(DATASIZE, (uint32_t)fileContents.size() - filePointer);
-        std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE + datalen);
-        // write something random into the header byte
-        pkt[0] = 123;
-        // copy databytes from the input file into data part of the packet, i.e., after the header
-        for (uint32_t i = 1; i < HEADERSIZE + datalen; i++) {
-            pkt[i] = fileContents[filePointer];
-            filePointer++;
-        }
+        bool done = false;
+        uint8_t seq = 0;
+        while(!done){
 
-        // send the packet to the network layer
-        networkLayer->sendPacket(pkt);
-        std::cout << "Sent one packet with header=" << pkt[0] << std::endl;
+            // create a new packet of appropriate size
+            uint32_t datalen = std::min(DATASIZE, (uint32_t)fileContents.size() - filePointer);
+            std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE + datalen);
+            // write something random into the header byte
+            pkt[0] = seq;
+            // copy databytes from the input file into data part of the packet, i.e., after the header
+            for (uint32_t i = 1; i < HEADERSIZE + datalen; i++) {
+                pkt[i] = fileContents[filePointer];
+                filePointer++;
+            }
+
+            // send the packet to the network layer
+            networkLayer->sendPacket(pkt);
+            std::cout << "Sent one packet with header=" << pkt[0] << std::endl;
+
+            bool acked = false;
+            unsigned int silence = 0;
+            while(!acked){
+                std::vector<int32_t> packet;
+                if (networkLayer->receivePacket(&packet)) {
+                    // tell the user
+                    std::cout << "Received ack, length=" << packet.size() << "  first byte=" << packet[0] << std::endl;
+                    acked = true;
+                }
+                else {
+                    // sleep for ~10ms (or however long the OS makes us wait)
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                    silence++;
+                }
+                if(silence==300){
+                    networkLayer->sendPacket(pkt);
+                    std::cout << "Retransmitting one packet with header=" << pkt[0] << std::endl;
+                    silence = 0;
+                }
+            }
+            seq++;
+            if(((uint32_t)fileContents.size() - filePointer) == 0){
+                done = true;
+            }
+            
+        }
+        
 
         // schedule a timer for 1000 ms into the future, just to show how that works:
         framework::SetTimeout(1000, this, 28);
@@ -86,6 +118,8 @@ namespace my_protocol {
 
         // loop until we are done receiving the file
         bool stop = false;
+        unsigned int silence = 0;
+        uint8_t lastseq = 3;
         while (!stop) {
 
             // try to receive a packet from the network layer
@@ -96,17 +130,24 @@ namespace my_protocol {
 
                 // tell the user
                 std::cout << "Received packet, length=" << packet.size() << "  first byte=" << packet[0] << std::endl;
-
+                if(packet[0] != lastseq){
                 // append the packet's data part (excluding the header) to the fileContents array, first making it larger
-                fileContents.insert(fileContents.end(), packet.begin() + HEADERSIZE, packet.end());
-
+                    fileContents.insert(fileContents.end(), packet.begin() + HEADERSIZE, packet.end());
+                }
+                std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE);
+                pkt[0] = packet[0];
+                networkLayer->sendPacket(pkt);
+                std::cout << "Sent one ack: " << pkt[0] << std::endl;
                 // and let's just hope the file is now complete
-                stop = true;
 
             }
             else {
                 // sleep for ~10ms (or however long the OS makes us wait)
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                silence++;
+            }
+            if(silence==500){
+                stop = true;
             }
         }
 
