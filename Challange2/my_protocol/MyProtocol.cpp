@@ -136,11 +136,8 @@ void MyProtocol::sender() {
                 if((packet[0] >= LOWseq && packet[0] < HIGHseq) or (packet[0] < HIGHseq-HEADERSIZE*256)){
                     // Packet fits in the buffer array
                     std::cout << "Received packet: " << packet[0] << std::endl;
-                    std::cout << "1" << std::endl;
                     if(packet[0] > SWS && packet[0] < HIGHseq-HEADERSIZE*256){
-                        std::cout << "2" << std::endl;
                         buffer[HEADERSIZE*256 - LOWseq + packet[0]] = packet; //Insert it at the right location
-                        std::cout << "3" << std::endl;
                     }
                     else{
                         buffer[packet[0]-LOWseq] = packet; //Insert it at the right location
