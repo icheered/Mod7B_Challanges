@@ -1,0 +1,8 @@
+E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\x64\Debug\rdtcInput1.png
+E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\x64\Debug\rdtcInput2.png
+E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\x64\Debug\rdtcInput3.png
+E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\x64\Debug\rdtcInput4.png
+E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\x64\Debug\rdtcInput5.png
+E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\x64\Debug\rdtcInput6.png
+E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\x64\Debug\DRDTChallengeClientCpp.exe
+E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\x64\Debug\DRDTChallengeClientCpp.pdb

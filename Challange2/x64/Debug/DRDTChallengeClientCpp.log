@@ -1,0 +1,3 @@
+﻿  Program.cpp
+E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\my_protocol\Program.cpp(60,20): warning C4477: 'printf' : format string '%s' requires an argument of type 'char *', but variadic argument 1 has type 'std::string'
+  DRDTChallengeClientCpp.vcxproj -> E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\x64\Debug\DRDTChallengeClientCpp.exe

@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ProjectOutputs>
+    <ProjectOutput>
+      <FullPath>E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\x64\Debug\DRDTChallengeClientCpp.exe</FullPath>
+    </ProjectOutput>
+  </ProjectOutputs>
+  <ContentFiles>
+    <ContentFile>
+      <FullPath>E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\rdtcInput1.png</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\rdtcInput2.png</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\rdtcInput3.png</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\rdtcInput4.png</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\rdtcInput5.png</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\rdtcInput6.png</FullPath>
+    </ContentFile>
+  </ContentFiles>
+  <SatelliteDlls />
+  <NonRecipeFileRefs />
+</Project>

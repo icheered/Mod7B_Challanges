@@ -52,13 +52,18 @@ namespace my_protocol {
         // keep track of where we are in the data
         uint32_t filePointer = 0;
 
-        bool done = false;
-        uint8_t seq = 0;
-        while(!done){
+        //repaeting serialNumbers
 
+        unsigned char seq = MINseq;
+
+        //buffer for sws
+
+        bool done = false;
+        while(!done){
             // create a new packet of appropriate size
             uint32_t datalen = std::min(DATASIZE, (uint32_t)fileContents.size() - filePointer);
             std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE + datalen);
+            std::vector<int32_t> pktBuffer = std::vector<int32_t>(HEADERSIZE + datalen);
             // write something random into the header byte
             pkt[0] = seq;
             // copy databytes from the input file into data part of the packet, i.e., after the header
@@ -73,7 +78,7 @@ namespace my_protocol {
 
             bool acked = false;
             unsigned int silence = 0;
-            while(!acked){
+            while(!acked){    //waiting for aknowledgment
                 std::vector<int32_t> packet;
                 if (networkLayer->receivePacket(&packet)) {
                     // tell the user
@@ -93,7 +98,7 @@ namespace my_protocol {
                     silence = 0;
                 }
             }
-            seq++;
+            if (seq < MAXseq) seq++; else seq = MINseq;  //reassin seq in circular way
             if(((uint32_t)fileContents.size() - filePointer) == 0){
                 done = true;
             }
@@ -102,7 +107,7 @@ namespace my_protocol {
         
 
         // schedule a timer for 1000 ms into the future, just to show how that works:
-        framework::SetTimeout(1000, this, 28);
+        //framework::SetTimeout(1000, this, 28);
 
         // and loop and sleep; you may use this loop to check for incoming acks. 
         // You can control the stop boolean yourself, the framework will set it to true for the sender once the server signals simulation finished.
@@ -122,7 +127,8 @@ namespace my_protocol {
         // loop until we are done receiving the file
         bool stop = false;
         unsigned int silence = 0;
-        int lastseq = 0;
+        unsigned char lastseq = MAXseq;
+        unsigned char expectseq = MINseq;
         while (!stop) {
 
             // try to receive a packet from the network layer
@@ -133,11 +139,12 @@ namespace my_protocol {
 
                 // tell the user
                 std::cout << "Received packet, length=" << packet.size() << "  first byte=" << packet[0] << std::endl;
-                if(packet[0] == lastseq){
+                if(packet[0] == expectseq){
                 // append the packet's data part (excluding the header) to the fileContents array, first making it larger
                     std::cout << "Adding to file... " << std::endl;
                     fileContents.insert(fileContents.end(), packet.begin() + HEADERSIZE, packet.end());
-                    lastseq++;
+                    lastseq = packet[0];
+                    if (expectseq < MAXseq) expectseq++; else expectseq = MINseq;
                 }
                 std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE);
                 pkt[0] = packet[0];

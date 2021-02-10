@@ -41,6 +41,8 @@ namespace my_protocol {
         void TimeoutElapsed(int32_t);
 
     private:
+        unsigned char MAXseq = 1;
+        unsigned char MINseq = 0;
         std::string fileID;
         framework::NetworkLayer* networkLayer;
         bool stop = false;
