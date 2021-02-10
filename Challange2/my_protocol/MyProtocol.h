@@ -44,8 +44,8 @@ namespace my_protocol {
         std::vector<std::vector<int32_t>> packetBuffer;
         unsigned char MAXseq = 20;
         unsigned char MINseq = 0;
-        unsigned int SWS = 10;
-        unsigned int RWS = 10;
+        const unsigned int SWS = 10;
+        const unsigned int RWS = 10;
         unsigned int LFS, LFR, LAF;
         int LAR, LARcount;
         std::string fileID;

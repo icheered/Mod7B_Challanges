@@ -85,38 +85,7 @@ void MyProtocol::sender() {
 
 
         while (!stop) {
-            // send the packet to the network layer
-            //networkLayer->sendPacket(pkt);
-            //std::cout << "Sent one packet with header=" << pkt[0] << std::endl;
-
-            /*bool acked = false;
-            unsigned int silence = 0;
-            while(!acked){    //waiting for aknowledgment
-                std::vector<int32_t> packet;
-                if (networkLayer->receivePacket(&packet)) {
-                    // tell the user
-                    std::cout << "Received ack, length=" << packet.size() << "  first byte=" << packet[0] << std::endl;
-                    if(packet[0] == seq){
-                        acked = true;
-                    }
-                }
-                else {
-                    // sleep for ~10ms (or however long the OS makes us wait)
-                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-                    silence++;
-                }
-                if(silence > 70){
-                    networkLayer->sendPacket(pkt);
-                    std::cout << "Retransmitting one packet with header=" << pkt[0] << std::endl;
-                    silence = 0;
-                }
-            }
-            if (seq < MAXseq) seq++; else seq = MINseq;  //increasing seq in circular way
-            if(((uint32_t)fileContents.size() - filePointer) == 0){
-                done = true;
-            }
-            */
-            if (LFS <= (LARcount + SWS)) {
+            if ((LFS <= (LARcount + SWS)) and (LFS < (int)packetBuffer.size())) {
                 networkLayer->sendPacket(packetBuffer[LFS]);
                 std::cout << "send packet " << LFS << std::endl;
                 framework::SetTimeout(1000, this, LFS);
@@ -130,8 +99,6 @@ void MyProtocol::sender() {
                     LARcount++;
                 }
             }
-
-
         }
         // schedule a timer for 1000 ms into the future, just to show how that works:
         //framework::SetTimeout(1000, this, 28);
@@ -166,12 +133,14 @@ void MyProtocol::sender() {
             // If we indeed received a packet
             if (networkLayer->receivePacket(&packet)) {
                 silence = 0;
-            
                 if((packet[0] >= LOWseq && packet[0] < HIGHseq) or (packet[0] < HIGHseq-HEADERSIZE*256)){
                     // Packet fits in the buffer array
                     std::cout << "Received packet: " << packet[0] << std::endl;
-                    if(packet[0] < HIGHseq-HEADERSIZE*256){
+                    std::cout << "1" << std::endl;
+                    if(packet[0] > SWS && packet[0] < HIGHseq-HEADERSIZE*256){
+                        std::cout << "2" << std::endl;
                         buffer[HEADERSIZE*256 - LOWseq + packet[0]] = packet; //Insert it at the right location
+                        std::cout << "3" << std::endl;
                     }
                     else{
                         buffer[packet[0]-LOWseq] = packet; //Insert it at the right location
@@ -218,7 +187,7 @@ void MyProtocol::sender() {
                 silence++;
             }
 
-            if(silence > 50000){
+            if(silence > 500){
                 stop = true;
             }
 
