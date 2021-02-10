@@ -24,6 +24,7 @@ namespace my_protocol {
 
     MyProtocol::MyProtocol() {
         this->networkLayer = NULL;
+        LFS = LFR = LAF = LARcount = LAR = 0;
     }
 
     MyProtocol::~MyProtocol() {
@@ -43,6 +44,7 @@ namespace my_protocol {
 
         // read from the input file
         std::vector<int32_t> fileContents = framework::getFileContents(fileID);
+        std::vector<unsigned char> receivedAcks;
         std::ostringstream ss;
         ss << fileContents.size();
         int sentpacks = int(std::stod(ss.str()) / DATASIZE) + 1;
@@ -51,32 +53,40 @@ namespace my_protocol {
 
         // keep track of where we are in the data
         uint32_t filePointer = 0;
-
+        std::vector<int32_t> acknowledgement;
         //repaeting serialNumbers
 
         unsigned char seq = MINseq;
+        LAR = seq-1;
+        LFS = seq;
 
-        //buffer for sws
-
-        bool done = false;
-        while(!done){
-            // create a new packet of appropriate size
-            uint32_t datalen = std::min(DATASIZE, (uint32_t)fileContents.size() - filePointer);
+        // create a new packet of appropriate size
+        // copy databytes from the input file into data part of the packet for every packet in the packet buffer, i.e., after the header
+        std::cout << "Before double assignment" << std::endl;
+        uint32_t datalen;
+        int j = 0;
+        while(true) {
+            datalen = std::min(DATASIZE, (uint32_t)fileContents.size() - filePointer);
             std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE + datalen);
-            std::vector<int32_t> pktBuffer = std::vector<int32_t>(HEADERSIZE + datalen);
-            // write something random into the header byte
-            pkt[0] = seq;
-            // copy databytes from the input file into data part of the packet, i.e., after the header
             for (uint32_t i = 1; i < HEADERSIZE + datalen; i++) {
                 pkt[i] = fileContents[filePointer];
                 filePointer++;
             }
+            pkt[0] = (j % MAXseq);
+            packetBuffer.push_back(pkt);
+            j++;
+            if (filePointer >= fileContents.size()) break;
+        }
+        std::cout << "The packet buffer holds " << (int)packetBuffer.size() << " Elements." << std::endl;
 
+
+
+        while (!stop) {
             // send the packet to the network layer
-            networkLayer->sendPacket(pkt);
-            std::cout << "Sent one packet with header=" << pkt[0] << std::endl;
+            //networkLayer->sendPacket(pkt);
+            //std::cout << "Sent one packet with header=" << pkt[0] << std::endl;
 
-            bool acked = false;
+            /*bool acked = false;
             unsigned int silence = 0;
             while(!acked){    //waiting for aknowledgment
                 std::vector<int32_t> packet;
@@ -98,22 +108,32 @@ namespace my_protocol {
                     silence = 0;
                 }
             }
-            if (seq < MAXseq) seq++; else seq = MINseq;  //reassin seq in circular way
+            if (seq < MAXseq) seq++; else seq = MINseq;  //increasing seq in circular way
             if(((uint32_t)fileContents.size() - filePointer) == 0){
                 done = true;
             }
-            
-        }
-        
+            */
+            if (LFS <= (LARcount + SWS)) {
+                networkLayer->sendPacket(packetBuffer[(int32_t)LFS]);
+                framework::SetTimeout(1000, this, LFS);
+                LFS++;
+            }
+            if (networkLayer->receivePacket(&acknowledgement)) {
+                // tell the user
+                std::cout << "Received ack, length=" << acknowledgement.size() << "  first byte=" << acknowledgement[0] << std::endl;
+                if ((LAR + 1) % MAXseq == acknowledgement[0]) {
+                    LAR = acknowledgement[0];
+                    LARcount++;
+                }
+            }
 
+
+        }
         // schedule a timer for 1000 ms into the future, just to show how that works:
         //framework::SetTimeout(1000, this, 28);
 
         // and loop and sleep; you may use this loop to check for incoming acks. 
         // You can control the stop boolean yourself, the framework will set it to true for the sender once the server signals simulation finished.
-        while (!stop) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
     }
 
     std::vector<int32_t> MyProtocol::receiver() {
@@ -171,7 +191,10 @@ namespace my_protocol {
     }
 
     void MyProtocol::TimeoutElapsed(int32_t tag) {
-        std::cout << "Timer expired with tag=" << tag << std::endl;
+        if (LARcount < tag) {
+            networkLayer->sendPacket(packetBuffer[(int32_t)tag]);
+            framework::SetTimeout(1000, this, tag);
+        }
     }
 
     void MyProtocol::setFileID(std::string id) {

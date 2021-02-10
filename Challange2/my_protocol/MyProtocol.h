@@ -41,8 +41,13 @@ namespace my_protocol {
         void TimeoutElapsed(int32_t);
 
     private:
-        unsigned char MAXseq = 1;
+        std::vector<std::vector<int32_t>> packetBuffer;
+        unsigned char MAXseq = 20;
         unsigned char MINseq = 0;
+        unsigned int SWS = 10;
+        unsigned int RWS = 10;
+        unsigned int LFS, LFR, LAF;
+        int LAR, LARcount;
         std::string fileID;
         framework::NetworkLayer* networkLayer;
         bool stop = false;
