@@ -46,7 +46,7 @@ namespace my_protocol {
         std::ostringstream ss;
         ss << fileContents.size();
         int sentpacks = int(std::stod(ss.str()) / DATASIZE) + 1;
-        std::cout << "File length: " << ss.str() << ". Expected nr of sent packages: " << sentpacks << std::endl;
+        std::cout << "File length: " << ss.str() << ". Packetsize: "<< DATASIZE << ". Expected nr of sent packages: " << sentpacks << std::endl;
 
 
         // keep track of where we are in the data
@@ -78,7 +78,9 @@ namespace my_protocol {
                 if (networkLayer->receivePacket(&packet)) {
                     // tell the user
                     std::cout << "Received ack, length=" << packet.size() << "  first byte=" << packet[0] << std::endl;
-                    acked = true;
+                    if(packet[0] == seq){
+                        acked = true;
+                    }
                 }
                 else {
                     // sleep for ~10ms (or however long the OS makes us wait)
