@@ -1,5 +1,6 @@
 ﻿  MyProtocol.cpp
-  Program.cpp
-E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\my_protocol\Program.cpp(60,20): warning C4477: 'printf' : format string '%s' requires an argument of type 'char *', but variadic argument 1 has type 'std::string'
-  Generating Code...
+E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\my_protocol\MyProtocol.cpp(139,79): warning C4018: '<': signed/unsigned mismatch
+E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\my_protocol\MyProtocol.cpp(142,34): warning C4018: '>': signed/unsigned mismatch
+E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\my_protocol\MyProtocol.cpp(142,53): warning C4018: '<': signed/unsigned mismatch
+E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\my_protocol\MyProtocol.cpp(171,38): warning C4018: '<': signed/unsigned mismatch
   DRDTChallengeClientCpp.vcxproj -> E:\mod7\Networking_systems\Mod7B_Challanges\Challange2\x64\Debug\DRDTChallengeClientCpp.exe

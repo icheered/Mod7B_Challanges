@@ -42,7 +42,7 @@ namespace my_protocol {
         this->stop = true;
     }
 
-void MyProtocol::sender() {
+    void MyProtocol::sender() {
         std::cout << "Sending..." << std::endl;
 
         // read from the input file
@@ -64,7 +64,7 @@ void MyProtocol::sender() {
         LARcount = LAR;
         LFS = seq;
 
-        // create a new packet of appropriate size
+        // create a new packetbuffer of appropriate size
         // copy databytes from the input file into data part of the packet for every packet in the packet buffer, i.e., after the header
         std::cout << "Before double assignment" << std::endl;
         uint32_t datalen;
@@ -85,22 +85,23 @@ void MyProtocol::sender() {
 
 
         while (!stop) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            if ((LFS <= (LARcount + SWS)) and (LFS < (int)packetBuffer.size())) {
-                networkLayer->sendPacket(packetBuffer[LFS]);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            if ((LFS <= (LARcount + SWS)) and (LFS < (int)packetBuffer.size())) { //sends packets aslong as in range of sws and aslong as there are packets in the packetbuffer
+                networkLayer->sendPacket(packetBuffer.at(LFS));
                 std::cout << "send packet " << LFS << std::endl;
                 framework::SetTimeout(700, this, LFS);
                 LFS++;
-                
             }
-            if (networkLayer->receivePacket(&acknowledgement)) {
+            if (networkLayer->receivePacket(&acknowledgement)) { //receives acknowldedgments and increases the LAR and LARcount if applicable
                 // tell the user
                 std::cout << "Received ack: " << acknowledgement[0] << std::endl;
                 if ((LAR + 1) % MAXseq == acknowledgement[0]) {
                     LAR = acknowledgement[0];
                     LARcount++;
                 }
+                std::cout << "LARcount is now: " << LARcount << std::endl;
             }
+
         }
         // schedule a timer for 1000 ms into the future, just to show how that works:
         //framework::SetTimeout(1000, this, 28);
@@ -124,8 +125,7 @@ void MyProtocol::sender() {
 
         int HIGHseq = windowsize;     // High value of SWS, exclusive
         int LOWseq = 0;       // Low value of SWS, inclusive
-        std::cout << "HIGHseq: " << windowsize << std::endl;
-        std::cout << "Lowseq: " << LOWseq << std::endl;
+        std::cout << "HighSeq: " << HIGHseq << ", Lowseq: "<< LOWseq << std::endl;
         
 
         std::vector<int32_t> buffer[windowsize]; //Buffer array
@@ -184,7 +184,7 @@ void MyProtocol::sender() {
                     std::cout << "Sent ack: " << pkt[0] << std::endl;
                 } else if(packet[0] < LOWseq) {
                     //std::cout << "Check6" << std::endl;
-                    std::cout << "Lowseq: " << LOWseq << std::endl;
+                    std::cout << "HighSeq: " << HIGHseq << ", Lowseq: "<< LOWseq << std::endl;
                     // Receiving an already handled package
                     // Resend ack message
                     std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE);
@@ -245,7 +245,7 @@ void MyProtocol::sender() {
             std::cout << "Resending package: " << packet[0] << std::endl;
             //std::cout << "Packet header: " <<  << std::endl;
             networkLayer->sendPacket(packet);
-            framework::SetTimeout(1000, this, tag);
+            framework::SetTimeout(500, this, tag);
         }
     }
 
