@@ -27,6 +27,7 @@ namespace my_protocol {
 
     MyProtocol::MyProtocol() {
         this->networkLayer = NULL;
+        LFS = LFR = LAF = LARcount = LAR = 0;
     }
 
     MyProtocol::~MyProtocol() {
@@ -46,6 +47,7 @@ namespace my_protocol {
 
         // read from the input file
         std::vector<int32_t> fileContents = framework::getFileContents(fileID);
+        std::vector<unsigned char> receivedAcks;
         std::ostringstream ss;
         ss << fileContents.size();
         int sentpacks = int(std::stod(ss.str()) / DATASIZE) + 1;
@@ -70,28 +72,36 @@ namespace my_protocol {
 
         //repeating serialNumbers
         unsigned char seq = MINseq;
+        LAR = seq-1;
+        LFS = seq;
 
-        //buffer for sws
-
-        bool done = false;
-        while(!done){
-            // create a new packet of appropriate size
-            uint32_t datalen = std::min(DATASIZE, (uint32_t)fileContents.size() - filePointer);
+        // create a new packet of appropriate size
+        // copy databytes from the input file into data part of the packet for every packet in the packet buffer, i.e., after the header
+        std::cout << "Before double assignment" << std::endl;
+        uint32_t datalen;
+        int j = 0;
+        while(true) {
+            datalen = std::min(DATASIZE, (uint32_t)fileContents.size() - filePointer);
             std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE + datalen);
-            std::vector<int32_t> pktBuffer = std::vector<int32_t>(HEADERSIZE + datalen);
-            // write something random into the header byte
-            pkt[0] = seq;
-            // copy databytes from the input file into data part of the packet, i.e., after the header
             for (uint32_t i = 1; i < HEADERSIZE + datalen; i++) {
                 pkt[i] = fileContents[filePointer];
                 filePointer++;
             }
+            pkt[0] = (j % MAXseq);
+            packetBuffer.push_back(pkt);
+            j++;
+            if (filePointer >= fileContents.size()) break;
+        }
+        std::cout << "The packet buffer holds " << (int)packetBuffer.size() << " Elements." << std::endl;
 
+
+
+        while (!stop) {
             // send the packet to the network layer
-            networkLayer->sendPacket(pkt);
-            std::cout << "Sent one packet with header=" << pkt[0] << std::endl;
+            //networkLayer->sendPacket(pkt);
+            //std::cout << "Sent one packet with header=" << pkt[0] << std::endl;
 
-            bool acked = false;
+            /*bool acked = false;
             unsigned int silence = 0;
             while(!acked){    //waiting for aknowledgment
                 std::vector<int32_t> packet;
@@ -113,22 +123,32 @@ namespace my_protocol {
                     silence = 0;
                 }
             }
-            if (seq < MAXseq) seq++; else seq = MINseq;  //reassin seq in circular way
+            if (seq < MAXseq) seq++; else seq = MINseq;  //increasing seq in circular way
             if(((uint32_t)fileContents.size() - filePointer) == 0){
                 done = true;
             }
-            
-        }
-        
+            */
+            if (LFS <= (LARcount + SWS)) {
+                networkLayer->sendPacket(packetBuffer[(int32_t)LFS]);
+                framework::SetTimeout(1000, this, LFS);
+                LFS++;
+            }
+            if (networkLayer->receivePacket(&acknowledgement)) {
+                // tell the user
+                std::cout << "Received ack, length=" << acknowledgement.size() << "  first byte=" << acknowledgement[0] << std::endl;
+                if ((LAR + 1) % MAXseq == acknowledgement[0]) {
+                    LAR = acknowledgement[0];
+                    LARcount++;
+                }
+            }
 
+
+        }
         // schedule a timer for 1000 ms into the future, just to show how that works:
         //framework::SetTimeout(1000, this, 28);
 
         // and loop and sleep; you may use this loop to check for incoming acks. 
         // You can control the stop boolean yourself, the framework will set it to true for the sender once the server signals simulation finished.
-        while (!stop) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        }
     }
 
     std::vector<int32_t> MyProtocol::receiver() {
@@ -143,8 +163,8 @@ namespace my_protocol {
         bool stop = false;
         //unsigned int silence = 0;
 
-        unsigned char MAXseq = SWS;     // High value of SWS, exclusive
-        unsigned char MINseq = 0;       // Low value of SWS, inclusive
+        unsigned char HIGHseq = SWS;     // High value of SWS, exclusive
+        unsigned char LOWseq = 0;       // Low value of SWS, inclusive
 
         std::vector<int32_t> buffer[SWS]; //Buffer array
         int silence = 0;
@@ -158,14 +178,14 @@ namespace my_protocol {
             if (networkLayer->receivePacket(&packet)) {
                 silence = 0;
             
-                if((packet[0] >= MINseq && packet[0] < MAXseq) or (packet[0] < MAXseq-HEADERSIZE*256)){
+                if((packet[0] >= LOWseq && packet[0] < HIGHseq) or (packet[0] < HIGHseq-HEADERSIZE*256)){
                     // Packet fits in the buffer array
                     std::cout << "Received packet: " << packet[0] << std::endl;
-                    if(packet[0] < MAXseq-HEADERSIZE*256){
-                        buffer[HEADERSIZE*256 - MINseq + packet[0]] = packet; //Insert it at the right location
+                    if(packet[0] < HIGHseq-HEADERSIZE*256){
+                        buffer[HEADERSIZE*256 - LOWseq + packet[0]] = packet; //Insert it at the right location
                     }
                     else{
-                        buffer[packet[0]-MINseq] = packet; //Insert it at the right location
+                        buffer[packet[0]-LOWseq] = packet; //Insert it at the right location
                     }
                     // Send ack message
                     std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE);
@@ -173,7 +193,7 @@ namespace my_protocol {
                     networkLayer->sendPacket(pkt);
                     std::cout << "Sent ack: " << pkt[0] << std::endl;
                 }
-                else if(packet[0] < MINseq) {
+                else if(packet[0] < LOWseq) {
                     // Receiving an already handled package
                     // Resend ack message
                     std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE);
@@ -183,7 +203,7 @@ namespace my_protocol {
                 }
 
                 // Check if the first package in the buffer is the next expected one
-                while(buffer[0][0] == MINseq){
+                while(buffer[0][0] == LOWseq){
                     // Add to output file
                     std::cout << "Adding to file... " << std::endl;
                     packet = buffer[0];
@@ -195,21 +215,18 @@ namespace my_protocol {
                     }
 
                     // Increment MINseq and MAXseq
-                    MINseq++;
-                    MAXseq++;
-                    if(MINseq > 255) {
-                        MINseq = 0;
-                        MAXseq = SWS;
+                    LOWseq++;
+                    HIGHseq++;
+                    if(LOWseq > 255) {
+                        LOWseq = 0;
+                        HIGHseq = SWS;
                     } 
                 }
             }
             else {
                 // sleep for ~10ms (or however long the OS makes us wait)
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
-                silence++;
-            }
-
-            if(silence > 50000){
+                silence++;MINseq
                 stop = true;
             }
 
@@ -221,7 +238,10 @@ namespace my_protocol {
     }
 
     void MyProtocol::TimeoutElapsed(int32_t tag) {
-        std::cout << "Timer expired with tag=" << tag << std::endl;
+        if (LARcount < tag) {
+            networkLayer->sendPacket(packetBuffer[(int32_t)tag]);
+            framework::SetTimeout(1000, this, tag);
+        }
     }
 
     void MyProtocol::setFileID(std::string id) {

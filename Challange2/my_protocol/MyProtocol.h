@@ -41,15 +41,18 @@ namespace my_protocol {
         void TimeoutElapsed(int32_t);
 
     private:
+        std::vector<std::vector<int32_t>> packetBuffer;
         unsigned char MAXseq = 20;
-        unsigned char MINseq = 1;
+        unsigned char MINseq = 0;
+        unsigned int SWS = 10;
+        unsigned int RWS = 10;
+        unsigned int LFS, LFR, LAF;
+        int LAR, LARcount;
         std::string fileID;
         framework::NetworkLayer* networkLayer;
         bool stop = false;
         const uint32_t HEADERSIZE = 1;   // number of header bytes in each packet
         const uint32_t DATASIZE = 256;   // max. number of user data bytes in each packet
-        const unsigned int SWS = 10;
-        unsigned int RWS = 10;
     };
 
 } /* namespace my_protocol */
