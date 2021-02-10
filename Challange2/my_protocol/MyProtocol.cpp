@@ -42,7 +42,7 @@ namespace my_protocol {
         this->stop = true;
     }
 
-    void MyProtocol::sender() {
+void MyProtocol::sender() {
         std::cout << "Sending..." << std::endl;
 
         // read from the input file
@@ -54,23 +54,11 @@ namespace my_protocol {
         std::cout << "File length: " << ss.str() << ". Packetsize: "<< DATASIZE << ". Expected nr of sent packages: " << sentpacks << std::endl;
 
 
-        // uint32_t filePointer = 0;
-        // bool done_inserting = false;
-        // uint32_t datalen;
-        // while(!done_inserting){
-        //     datalen = std::min(DATASIZE, (uint32_t)fileContents.size() - filePointer);
-        //     std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE + datalen);
-        //     //append to packet buffer
-        //     if(((uint32_t)fileContents.size() - filePointer) == 0) {
-        //         break;
-        //     }
-        // }
-
-
         // keep track of where we are in the data
         uint32_t filePointer = 0;
+        std::vector<int32_t> acknowledgement;
+        //repaeting serialNumbers
 
-        //repeating serialNumbers
         unsigned char seq = MINseq;
         LAR = seq-1;
         LFS = seq;
@@ -129,7 +117,8 @@ namespace my_protocol {
             }
             */
             if (LFS <= (LARcount + SWS)) {
-                networkLayer->sendPacket(packetBuffer[(int32_t)LFS]);
+                networkLayer->sendPacket(packetBuffer[LFS]);
+                std::cout << "send packet " << LFS << std::endl;
                 framework::SetTimeout(1000, this, LFS);
                 LFS++;
             }
@@ -226,7 +215,10 @@ namespace my_protocol {
             else {
                 // sleep for ~10ms (or however long the OS makes us wait)
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
-                silence++;MINseq
+                silence++;
+            }
+
+            if(silence > 50000){
                 stop = true;
             }
 
