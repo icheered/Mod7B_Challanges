@@ -19,6 +19,9 @@
 #include <algorithm>
 #include <chrono>
 #include <thread>
+#include <array>
+#include <vector>
+#include <list>
 
 namespace my_protocol {
 
@@ -49,11 +52,23 @@ namespace my_protocol {
         std::cout << "File length: " << ss.str() << ". Packetsize: "<< DATASIZE << ". Expected nr of sent packages: " << sentpacks << std::endl;
 
 
+        // uint32_t filePointer = 0;
+        // bool done_inserting = false;
+        // uint32_t datalen;
+        // while(!done_inserting){
+        //     datalen = std::min(DATASIZE, (uint32_t)fileContents.size() - filePointer);
+        //     std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE + datalen);
+        //     //append to packet buffer
+        //     if(((uint32_t)fileContents.size() - filePointer) == 0) {
+        //         break;
+        //     }
+        // }
+
+
         // keep track of where we are in the data
         uint32_t filePointer = 0;
 
-        //repaeting serialNumbers
-
+        //repeating serialNumbers
         unsigned char seq = MINseq;
 
         //buffer for sws
@@ -126,44 +141,79 @@ namespace my_protocol {
 
         // loop until we are done receiving the file
         bool stop = false;
-        unsigned int silence = 0;
-        unsigned char lastseq = MAXseq;
-        unsigned char expectseq = MINseq;
+        //unsigned int silence = 0;
+
+        unsigned char MAXseq = SWS;     // High value of SWS, exclusive
+        unsigned char MINseq = 0;       // Low value of SWS, inclusive
+
+        std::vector<int32_t> buffer[SWS]; //Buffer array
+        int silence = 0;
+
+
         while (!stop) {
 
-            // try to receive a packet from the network layer
+            // Try to receive a packet from the network layer
             std::vector<int32_t> packet;
-
-            // if we indeed received a packet
+            // If we indeed received a packet
             if (networkLayer->receivePacket(&packet)) {
-
-                // tell the user
-                std::cout << "Received packet, length=" << packet.size() << "  first byte=" << packet[0] << std::endl;
-                if(packet[0] == expectseq){
-                // append the packet's data part (excluding the header) to the fileContents array, first making it larger
-                    std::cout << "Adding to file... " << std::endl;
-                    fileContents.insert(fileContents.end(), packet.begin() + HEADERSIZE, packet.end());
-                    lastseq = packet[0];
-                    if (expectseq < MAXseq) expectseq++; else expectseq = MINseq;
-                }
-                std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE);
-                pkt[0] = packet[0];
-                networkLayer->sendPacket(pkt);
-                std::cout << "Sent one ack: " << pkt[0] << std::endl;
                 silence = 0;
-                // and let's just hope the file is now complete
+            
+                if((packet[0] >= MINseq && packet[0] < MAXseq) or (packet[0] < MAXseq-HEADERSIZE*256)){
+                    // Packet fits in the buffer array
+                    std::cout << "Received packet: " << packet[0] << std::endl;
+                    if(packet[0] < MAXseq-HEADERSIZE*256){
+                        buffer[HEADERSIZE*256 - MINseq + packet[0]] = packet; //Insert it at the right location
+                    }
+                    else{
+                        buffer[packet[0]-MINseq] = packet; //Insert it at the right location
+                    }
+                    // Send ack message
+                    std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE);
+                    pkt[0] = packet[0];
+                    networkLayer->sendPacket(pkt);
+                    std::cout << "Sent ack: " << pkt[0] << std::endl;
+                }
+                else if(packet[0] < MINseq) {
+                    // Receiving an already handled package
+                    // Resend ack message
+                    std::vector<int32_t> pkt = std::vector<int32_t>(HEADERSIZE);
+                    pkt[0] = packet[0];
+                    networkLayer->sendPacket(pkt);
+                    std::cout << "Sent ack: " << pkt[0] << std::endl;
+                }
 
+                // Check if the first package in the buffer is the next expected one
+                while(buffer[0][0] == MINseq){
+                    // Add to output file
+                    std::cout << "Adding to file... " << std::endl;
+                    packet = buffer[0];
+                    fileContents.insert(fileContents.end(), packet.begin() + HEADERSIZE, packet.end());
+                    
+                    // Shift all elements 1 place left
+                    for(int i = 0; i < SWS - 1; i++) {
+                        buffer[i] = buffer[i+1];
+                    }
+
+                    // Increment MINseq and MAXseq
+                    MINseq++;
+                    MAXseq++;
+                    if(MINseq > 255) {
+                        MINseq = 0;
+                        MAXseq = SWS;
+                    } 
+                }
             }
             else {
                 // sleep for ~10ms (or however long the OS makes us wait)
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
                 silence++;
             }
-            if(silence > 500){
-                std::cout << "Timeout too long, Assume the file was send completely" << std::endl;
+
+            if(silence > 50000){
                 stop = true;
-                silence = 0;
             }
+
+            //Terminate how?
         }
 
         // write to the output file
