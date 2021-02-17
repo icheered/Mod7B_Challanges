@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\framework">
+      <UniqueIdentifier>{6346950a-7dd0-41d9-8896-419afdc764dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\framework">
+      <UniqueIdentifier>{2e920536-611e-4357-807d-ce144b5fbc4c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\my_protocol">
+      <UniqueIdentifier>{8e2f2870-a1a3-40cd-9113-1d1d7f6907c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\my_protocol">
+      <UniqueIdentifier>{1772dd97-67b0-4cfc-94c7-3803958a3d5c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="framework\MACChallengeClient.cpp">
+      <Filter>Source Files\framework</Filter>
+    </ClCompile>
+    <ClCompile Include="my_protocol\MyProtocol.cpp">
+      <Filter>Source Files\my_protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="my_protocol\Program.cpp">
+      <Filter>Source Files\my_protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="my_protocol\SlottedAlohaSimplified.cpp">
+      <Filter>Source Files\my_protocol</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework\MACChallengeClient.h">
+      <Filter>Header Files\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="framework\IMACProtocol.h">
+      <Filter>Header Files\framework</Filter>
+    </ClInclude>
+    <ClInclude Include="my_protocol\MyProtocol.h">
+      <Filter>Header Files\my_protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="my_protocol\SlottedAlohaSimplified.h">
+      <Filter>Header Files\my_protocol</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
