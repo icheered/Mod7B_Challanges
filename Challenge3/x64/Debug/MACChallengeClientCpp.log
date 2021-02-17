@@ -1,0 +1,8 @@
+﻿  MyProtocol.cpp
+C:\Users\soenk\Documents\mod7\Networking_systems\Mod7B_Challanges\Challenge3\my_protocol\MyProtocol.h(41,35): warning C4244:  'initializing': conversion from 'double' to 'const int32_t', possible loss of data
+C:\Users\soenk\Documents\mod7\Networking_systems\Mod7B_Challanges\Challenge3\my_protocol\MyProtocol.cpp(24,27): warning C4244:  'initializing': conversion from '_Rep' to 'unsigned int', possible loss of data
+C:\Users\soenk\Documents\mod7\Networking_systems\Mod7B_Challanges\Challenge3\my_protocol\MyProtocol.cpp(24,27): warning C4244:         with
+C:\Users\soenk\Documents\mod7\Networking_systems\Mod7B_Challanges\Challenge3\my_protocol\MyProtocol.cpp(24,27): warning C4244:         [
+C:\Users\soenk\Documents\mod7\Networking_systems\Mod7B_Challanges\Challenge3\my_protocol\MyProtocol.cpp(24,27): warning C4244:             _Rep=__int64
+C:\Users\soenk\Documents\mod7\Networking_systems\Mod7B_Challanges\Challenge3\my_protocol\MyProtocol.cpp(24,27): warning C4244:         ]
+  MACChallengeClientCpp.vcxproj -> C:\Users\soenk\Documents\mod7\Networking_systems\Mod7B_Challanges\Challenge3\x64\Debug\MACChallengeClientCpp.exe

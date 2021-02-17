@@ -23,7 +23,7 @@
 using namespace my_protocol;
 
 // Change to your group authentication token
-std::string groupToken = "get-your-token-from-the-website";
+std::string groupToken = "413ccece-d6da-4c55-bf00-5dad2838f5ac";
 
 // The protocol implementation, change below
 framework::IMACProtocol *protocolImpl = new MyProtocol();

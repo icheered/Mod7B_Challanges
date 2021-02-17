@@ -20,6 +20,8 @@
 #include <chrono>
 #include <random>
 #include <iostream>
+#include <vector> 
+#include <string>
 
 #ifndef PROTOCOL_MYPROTOCOL_H_
 #define PROTOCOL_MYPROTOCOL_H_
@@ -33,6 +35,15 @@ namespace my_protocol {
         TransmissionInfo TimeslotAvailable(MediumState previousMediumState, int32_t controlInformation, int localQueueLength);
     private:
         std::default_random_engine rnd;
+		int cnt, waitFor;
+		int32_t MyserialNumber;
+		bool sendSerial, trySending, collisionHappend;
+		const int32_t queMultiplyer= pow(2, 20);
+		struct user {
+			int32_t serialNumber = 0;
+			bool que = false;
+		};
+		std::vector<user> userList;
     };
 
 } /* namespace my_protocol */
