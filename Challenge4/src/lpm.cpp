@@ -15,6 +15,7 @@
 
 
 #include <stdio.h>
+#include <iostream>
 
 void ip2human(unsigned int ip);
 
@@ -23,10 +24,13 @@ void ip2human(unsigned int ip);
 
 void init() {
    // You can use this function to initialize variables.
+   
+   // Create tree with initial treenode 
 }
 
 void add_route(unsigned int ip, int prefix_length, int port_number) {
     // TODO: Store route to be used for later use in lookup_ip() function
+
 }
 
 // This method is called after all routes have been added.
