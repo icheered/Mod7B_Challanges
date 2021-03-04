@@ -14,6 +14,15 @@
  */
 
 
+//==============================================================
+// Filename :   lpm.cpp
+// Authors :    Tjeerd Bakker and Soenke van Loh
+// Version :    v1.0
+// License :    Copyright by University of Twente
+// Description : Longest Prefix Matching
+//==============================================================
+
+
 #include <stdio.h>
 #include <iostream>
 
