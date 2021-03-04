@@ -58,7 +58,7 @@ namespace my_protocol {
 						return TransmissionInfo{ Data, encodecontroleInfo(MyserialNumber, add) };
 					}
 					else {
-						if (this->rnd() % 100 < 60) {
+						if (this->rnd() % 100 < 50) {
 							//std::cout << "SLOT - trying to send data by chance." << std::endl;
 							return TransmissionInfo{ Data, add };
 						}

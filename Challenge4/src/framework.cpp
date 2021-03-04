@@ -44,7 +44,7 @@ void read_routes(const char* routes) {
         sscanf(s, "%i.%i.%i.%i/%i %i", &a, &b, &c, &d, &pl, &pn);
         ip = (a << 24) | (b << 16) | (c << 8) | d;
 
-        add_route(ip, pl, pn);
+        add_route(ip, pl, pn); //add route is called after each line of the file that is read with the according ip as an int32, pl is the prefix length and pn the port number
     }
     finalize_routes();
 
