@@ -53,7 +53,7 @@ public:
    TreeNode *rightPtr;     // pointer to left subtree
 
    // Constructor
-   TreeNode(  )   
+   TreeNode()   
       : leftPtr( nullptr ), // pointer to left subtree
         port( -1 ), // tree node data
         rightPtr( nullptr ) // pointer to right substree
@@ -68,36 +68,42 @@ public:
 class Tree
 {
 private:
-    TreeNode *rootPtr;
+    TreeNode* rootPtr;
 public:
-    Tree() : rootPtr(nullptr) { /* empty body */}
+    Tree() : rootPtr(new TreeNode()) { /* empty body */ }
 
     void insertNode(unsigned int ip, unsigned int remaining_prefix, int port) //  IP, Prefix Length, Port
     {
-        Tree::insertNodeHelper(&rootPtr, ip, remaining_prefix, port);
+        Tree::insertNodeHelper(rootPtr, ip, remaining_prefix, port);
     }
-    void getPort(unsigned int ip)
+    int getPort(unsigned int ip)
     {
-        return Tree::getPortHelper(&rootPtr, ip);
+        return Tree::getPortHelper(rootPtr, ip);
     }
 
 
-    void insertNodeHelper(TreeNode **ptr, unsigned int ip, unsigned int remaining_prefix, int port)
+    void insertNodeHelper(TreeNode* ptr, unsigned int ip, unsigned int remaining_prefix, int port)
     {
+        // std::cout << "ip: " << ip << "\n";
+        // std::bitset<32> x(ip);
+        // std::cout << "ip (bits): "  << x <<  "\n";
+        // std::cout << "remaining_prefix: " << remaining_prefix << "\n";
+        // std::cout << "port: " << port << "\n";
 
         // If remaining_prefix == 0
             // If port > current node value
                 // Set current node value to port
             // Else 
                 // return
-        if(remaining_prefix == 0) {
-            int currentPort = (*ptr)->port;
-            if(port > currentPort) {
-                (**ptr).port = port;
+        if (remaining_prefix == 0) {
+            // std::cout << "Remaining prefix is 0 \n";
+            int currentPort = (ptr)->port;
+            if (port > currentPort) {
+                (*ptr).port = port;
             }
             return;
         }
-        
+
 
 
 
@@ -106,12 +112,16 @@ public:
                 // Create new node
                 // Set current node rightptr to new node pointer
             // insertNodeHelper ( current node rightptr, inverted IP rightshifted, remaining_prefix -= 1, port)
-        else if (ip & (0x1<<31))
+        else if (ip & (0b1 << 31))
         {
-            if((*ptr)->rightPtr == nullptr){
-                (**ptr).rightPtr = new TreeNode();
+            // std::cout << "First IP bit is 1 \n";
+            if ((ptr)->rightPtr == nullptr) {
+
+                (*ptr).rightPtr = new TreeNode();
+                ptr->rightPtr->port = ptr->port;
             }
-            insertNodeHelper(&((*ptr)->rightPtr), ip << 1, remaining_prefix--, port);
+            insertNodeHelper((ptr->rightPtr), ip << 1, --remaining_prefix, port);
+            return;
         }
 
 
@@ -121,44 +131,54 @@ public:
                 // Create new node
                 // Set current node leftptr to new node pointer
             // insertNodeHelper ( current node leftptr, inverted IP rightshifted, remaining_prefix -= 1, port)
-        else if (!(ip & (0x1<<31)))
+        else if (!(ip & (0x1 << 31)))
         {
-            if((*ptr)->leftPtr == nullptr){
-                (**ptr).leftPtr = new TreeNode();
-            }
-            insertNodeHelper(&((*ptr)->leftPtr), ip << 1, remaining_prefix--, port);
-        }
-    } 
+            // std::cout << "First IP bit is 0 \n" ;
 
-    void getPortHelper(TreeNode **ptr, unsigned int inverted_ip)
+            if ((*ptr).leftPtr == nullptr) {
+                // std::cout << "Leftptr is nullptr \n";
+                (*ptr).leftPtr = new TreeNode();
+                ptr->leftPtr->port = ptr->port;
+            }
+
+            // std::cout << "Traversing tree \n";
+            insertNodeHelper((ptr->leftPtr), ip << 1, --remaining_prefix, port);
+            return;
+        }
+        std::cout << std::endl;
+    }
+
+    int getPortHelper(TreeNode* ptr, unsigned int ip)
     {
+        // If current IP bit == 1 
+            // If current node rightptr == nullptr
+                // Return current node port
+            // Else 
+                // Return getPortHelper (current node rightptr, inverted_ip rightshifted)
+        if (ip & (0b1 << 31)) {
+            if ((ptr)->rightPtr == nullptr) {
+                return (*ptr).port;
+            }
+            else {
+                return getPortHelper((ptr->rightPtr), ip << 1);
+            }
+        }
+
         // If current IP bit == 0 
             // If current node leftptr == nullptr
                 // Return current node port
             // Else 
                 // Return getPortHelper (current node leftptr, inverted_ip rightshifted)
-        // Else If current IP bit == 1 
-            // If current node rightptr == nullptr
-                // Return current node port
-            // Else 
-                // Return getPortHelper (current node rightptr, inverted_ip rightshifted)
+        else {
+            if ((ptr)->leftPtr == nullptr) {
+                return (*ptr).port;
+            }
+            else {
+                return getPortHelper((ptr->leftPtr), ip << 1);
+            }
+        }
     }
-
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -191,7 +211,7 @@ void finalize_routes() {
 int lookup_ip(unsigned int ip) {
     // TODO: Lookup IP in stored data from add_route function,
     //       returns port number (or -1 for no route found).
-    best_match bestie(0, 0, -1); //initiate best match
+    /*best_match bestie(0, 0, -1); //initiate best match
     for (const auto& iterator : ip_entrys) {
         reftemp = iterator.ip ^ ip;
         reftemp = reftemp >> (32 - iterator.pl);
@@ -201,7 +221,9 @@ int lookup_ip(unsigned int ip) {
                 bestie.pn = iterator.pn;
         }
     }
-    return bestie.pn;
+    return bestie.pn;*/
+    return portTree.getPort(ip);
+    return -1;
 }
 
 

@@ -132,6 +132,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\lpm.h" />
+    <ClInclude Include="src\tree.h" />
+    <ClInclude Include="src\treenode.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

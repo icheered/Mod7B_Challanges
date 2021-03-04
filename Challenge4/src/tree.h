@@ -72,9 +72,27 @@ void getPortHelper(TreeNode **ptr, unsigned int inverted_ip)
             // Return current node port
         // Else 
             // Return getPortHelper (current node leftptr, inverted_ip rightshifted)
+
+    if (!(inverted_ip & (0x1 << 31))) {
+        if ((**ptr).leftPtr == nullptr) {
+            return (**ptr).port;
+        }
+        else {
+            getPortHelper(&((*ptr)->leftPtr), inverted_ip >> 1);
+        }
+
+    }
     // Else If current IP bit == 1 
         // If current node rightptr == nullptr
             // Return current node port
         // Else 
             // Return getPortHelper (current node rightptr, inverted_ip rightshifted)
+    else if ((inverted_ip & (0x1 << 31))) {
+            if ((**ptr).leftPtr == nullptr) {
+                return (**ptr).port;
+            }
+            else {
+                getPortHelper(&((*ptr)->rightPtr), inverted_ip >> 1);
+            }
+    }
 }
