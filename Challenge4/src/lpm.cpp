@@ -61,12 +61,6 @@ public:
 
     void insertNodeHelper(TreeNode *ptr, unsigned int ip, unsigned int remaining_prefix, int port)
     {
-        // std::cout << "ip: " << ip << "\n";
-        // std::bitset<32> x(ip);
-        // std::cout << "ip (bits): "  << x <<  "\n";
-        // std::cout << "remaining_prefix: " << remaining_prefix << "\n";
-        // std::cout << "port: " << port << "\n";
-
         // If remaining_prefix == 0
             // If port > current node value
                 // Set current node value to port
@@ -74,11 +68,10 @@ public:
                 // return
         if(remaining_prefix == 0) {
             ptr->port = port;
-
             return;
         }
         
-        
+
         // Else if current IP bit == 1:
             // If current node rightptr == nulptr
                 // Create new node
@@ -86,7 +79,6 @@ public:
             // insertNodeHelper ( current node rightptr, inverted IP rightshifted, remaining_prefix -= 1, port)
         else if (ip & (0b1<<31))
         {
-            // std::cout << "First IP bit is 1 \n";
             if(ptr->rightPtr == nullptr){
                 ptr->rightPtr = new TreeNode();
                 (ptr->rightPtr)->port = ptr->port;
@@ -102,17 +94,13 @@ public:
                 // Create new node
                 // Set current node leftptr to new node pointer
             // insertNodeHelper ( current node leftptr, inverted IP rightshifted, remaining_prefix -= 1, port)
-        else if (!(ip & (0x1<<31)))
+       
+        else
         {
-            // std::cout << "First IP bit is 0 \n" ;
-
             if(ptr->leftPtr == nullptr){
-                // std::cout << "Leftptr is nullptr \n";
                 ptr->leftPtr = new TreeNode();
                  (ptr->leftPtr)->port = ptr->port;
             }
-
-            // std::cout << "Traversing tree \n";
             insertNodeHelper((ptr->leftPtr), ip << 1, --remaining_prefix, port);
             return;
         }
@@ -142,7 +130,8 @@ public:
                 // Return current node port
             // Else 
                 // Return getPortHelper (current node leftptr, inverted_ip rightshifted)
-        else if(!(ip & (0b1<<31))) {
+        else 
+        {
             if ((ptr)->leftPtr == nullptr) {
                 return (*ptr).port;
             }
@@ -156,23 +145,7 @@ public:
 };
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Tree portTree;
-
+Tree portTree[256];
 
 void init() {
     //read in the txt into data struct
@@ -180,9 +153,8 @@ void init() {
 }
 
 void add_route(unsigned int ip, int prefix_length, int port_number) {
-    // TODO: Store route to be used for later use in lookup_ip() function
-    //ip_entrys.emplace_back(prefix_length, ip, port_number);
-    portTree.insertNode(ip, prefix_length, port_number);
+    prefix_length -= 8;
+    portTree[ip>>24].insertNode(ip<<8, prefix_length, port_number);
 }
 
 // This method is called after all routes have been added.
@@ -190,15 +162,11 @@ void add_route(unsigned int ip, int prefix_length, int port_number) {
 // organize the routing information, if your datastructure requires this.
 void finalize_routes() {
     std::cout << "Done" << std::endl;
-    // TODO: (optionally) use this to finalize your routes.
 }
 
 int lookup_ip(unsigned int ip) {
-    // TODO: Lookup IP in stored data from add_route function,
-    //       returns port number (or -1 for no route found).
-    return portTree.getPort(ip);
+    return portTree[ip>>24].getPort(ip<<8);
 }
-
 
 // convenience function to print IP addresses in human readable form for debugging
 void ip2human(unsigned int ip) {
