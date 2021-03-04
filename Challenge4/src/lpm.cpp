@@ -16,7 +16,7 @@
 
 //==============================================================
 // Filename :   lpm.cpp
-// Authors :    Tjeerd Bakker and Soenke van Loh
+// Authors :    Tjeerd Bakker (s2097966) and Soenke van Loh (s2270862)
 // Version :    v1.0
 // License :    Copyright by University of Twente
 // Description : Longest Prefix Matching
@@ -29,7 +29,6 @@
 
 class TreeNode
 {
-
 public:
    TreeNode *leftPtr;       // pointer to left subtree
    int port;                // Interface number
@@ -133,7 +132,7 @@ public:
         }
 
 
-        else 
+        else
         // First bit of the IP address == 0 
         {
             if ((ptr)->leftPtr == nullptr) {
@@ -156,7 +155,7 @@ public:
 
 // Create lookup table (prefix length is always larger than 8, we don't have to check the first 8 bits)
 // This will create 256 (small) binary trees
-Tree portTree[512];
+Tree portTree[256];
 
 
 void init() {
