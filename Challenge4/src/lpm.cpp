@@ -16,6 +16,8 @@
 
 #include <stdio.h>
 #include <iostream>
+#include "lpm.h"
+
 
 
 void ip2human(unsigned int ip);
@@ -155,16 +157,6 @@ public:
     }
 };
 
-
-
-
-std::vector<ip_entry> ip_entrys;
-int reftemp;
-
-
-std::vector<ip_entry> ip_entrys;
-int reftemp;
-
 Tree portTree;
 
 
@@ -186,23 +178,9 @@ void finalize_routes() {
     std::cout << "Done" << std::endl;
     // TODO: (optionally) use this to finalize your routes.
 }
-    /*best_match bestie(0, 0, -1); //initiate best match
-    for (const auto& iterator : ip_entrys) {
-        reftemp = iterator.ip ^ ip;
-        reftemp = reftemp >> (32 - iterator.pl);
-        if (reftemp == 0 && bestie.pl < iterator.pl) {
-                bestie.pl = iterator.pl;
-                bestie.ref = reftemp;
-                bestie.pn = iterator.pn;
-        }
-    }
-    return bestie.pn;*/
+
+int lookup_ip(unsigned int ip) {
     return portTree.getPort(ip);
-    return -1;
-                bestie.pn = iterator.pn;
-        }
-    }
-    return bestie.pn;
 }
 
 
