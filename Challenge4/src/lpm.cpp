@@ -62,7 +62,7 @@ void finalize_routes() {
     // TODO: (optionally) use this to finalize your routes.
 }
 
-int lookup_ip(unsigned int& ip) {
+int lookup_ip(unsigned int ip) {
     // TODO: Lookup IP in stored data from add_route function,
     //       returns port number (or -1 for no route found).
     best_match bestie(0, 0, -1); //initiate best match
