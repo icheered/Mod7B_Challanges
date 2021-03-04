@@ -62,7 +62,7 @@ void finalize_routes() {
     // TODO: (optionally) use this to finalize your routes.
 }
 
-int lookup_ip(unsigned int& ip) {
+int lookup_ip(unsigned int ip) {
     // TODO: Lookup IP in stored data from add_route function,
     //       returns port number (or -1 for no route found).
     best_match bestie(0, 0, -1); //initiate best match
@@ -89,4 +89,110 @@ void ip2human(unsigned int ip) {
     d =  ip        & 0xff;
 
     printf("%i.%i.%i.%i\n", a, b, c, d);
+}
+
+
+
+
+
+
+
+class TreeNode
+{
+
+public:
+   TreeNode *leftPtr;      // pointer to left subtree
+   int port;// port number
+   TreeNode *rightPtr;     // pointer to left subtree
+
+   // Constructor
+   TreeNode(  )   
+      : leftPtr( nullptr ), // pointer to left subtree
+        port( -1 ), // tree node data
+        rightPtr( nullptr ) // pointer to right substree
+   {} 
+};
+
+
+
+
+
+
+class Tree
+{
+private:
+    TreeNode *rootPtr;
+public:
+    Tree() : rootPtr(nullptr) { /* empty body */}
+
+    void insertNode(unsigned int ip, unsigned int remaining_prefix, int port) //  IP, Prefix Length, Port
+    {
+        insertNodeHelper(&rootPtr, ip, remaining_prefix, port);
+    }
+    void getPort(unsigned int ip)
+    {
+        return getPortHelper(&rootPtr, ip);
+    }
+};
+
+void insertNodeHelper(TreeNode **ptr, unsigned int ip, unsigned int remaining_prefix, int port)
+    {
+
+        // If remaining_prefix == 0
+            // If port > current node value
+                // Set current node value to port
+            // Else 
+                // return
+        if(remaining_prefix == 0) {
+            int currentPort = (*ptr)->port;
+            if(port > currentPort) {
+                (**ptr).port = port;
+            }
+            return;
+        }
+        
+
+
+
+        // Else if current IP bit == 1:
+            // If current node rightptr == nulptr
+                // Create new node
+                // Set current node rightptr to new node pointer
+            // insertNodeHelper ( current node rightptr, inverted IP rightshifted, remaining_prefix -= 1, port)
+        else if (ip & (0x1<<31))
+        {
+            if((*ptr)->rightPtr == nullptr){
+                (**ptr).rightPtr = new TreeNode();
+            }
+            insertNodeHelper(&((*ptr)->rightPtr), ip << 1, remaining_prefix--, port);
+        }
+
+
+
+        // Else if current IP bit == 0:
+            // If current node leftptr == nulptr
+                // Create new node
+                // Set current node leftptr to new node pointer
+            // insertNodeHelper ( current node leftptr, inverted IP rightshifted, remaining_prefix -= 1, port)
+        else if (!(ip & (0x1<<31)))
+        {
+            if((*ptr)->leftPtr == nullptr){
+                (**ptr).leftPtr = new TreeNode();
+            }
+            insertNodeHelper(&((*ptr)->leftPtr), ip << 1, remaining_prefix--, port);
+        }
+    } 
+
+void getPortHelper(TreeNode **ptr, unsigned int inverted_ip)
+{
+    // If current IP bit == 0 
+        // If current node leftptr == nullptr
+            // Return current node port
+        // Else 
+            // Return getPortHelper (current node leftptr, inverted_ip rightshifted)
+    // Else If current IP bit == 1 
+        // If current node rightptr == nullptr
+            // Return current node port
+        // Else 
+            // Return getPortHelper (current node rightptr, inverted_ip rightshifted)
 }
