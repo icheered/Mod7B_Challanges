@@ -31,9 +31,10 @@ namespace my_protocol {
         std::map<int32_t, int32_t> getForwardingTable();
     private:
         framework::LinkLayer* linkLayer;
-
+        std::vector<int32_t> MyNeighbours;
         // You can use this data structure to store your routing table.
         std::map<int32_t, my_protocol::MyRoute> myRoutingTable;
+        std::map<int32_t, std::vector<my_protocol::MyRoute>> myPossibleRoutes;
     };
 
 } /* namespace my_protocol */
