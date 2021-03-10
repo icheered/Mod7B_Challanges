@@ -14,6 +14,7 @@
  */
 
 #include <map>
+#include <vector>
 #include "MyRoute.h"
 #include "../framework/IRoutingProtocol.h"
 
@@ -33,7 +34,9 @@ namespace my_protocol {
         framework::LinkLayer* linkLayer;
 
         // You can use this data structure to store your routing table.
+        int tickCounter = 0;
         std::map<int32_t, my_protocol::MyRoute> myRoutingTable;
+        std::vector<int32_t> neighbourTable;
     };
 
 } /* namespace my_protocol */

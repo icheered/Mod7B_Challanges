@@ -27,6 +27,10 @@ namespace my_protocol {
         ~MyRoute();
         int32_t nextHop = 0;
         int32_t cost = 0;
+        int32_t Hop1 = 0;
+        int32_t Hop2 = 0;
+        int32_t Hop3 = 0;
+        int32_t Hop4 = 0;
     };
 }
 #endif /* MyROUTE_H_ */

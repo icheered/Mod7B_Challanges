@@ -29,7 +29,7 @@
 using namespace my_protocol;
 
 // Change to your group authentication token
-std::string groupToken = "get-your-token-from-the-website";
+std::string groupToken = "95e68e2d-1dbe-41b8-b2ce-17dcc103ea57";
 
 // Change to your protocol implementation
 framework::IRoutingProtocol *createProtocol() {
