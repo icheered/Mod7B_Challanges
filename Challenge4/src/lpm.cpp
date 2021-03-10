@@ -16,7 +16,7 @@
 
 //==============================================================
 // Filename :   lpm.cpp
-// Authors :    Tjeerd Bakker and Soenke van Loh
+// Authors :    Tjeerd Bakker (s2097966) and Soenke van Loh (s2270862)
 // Version :    v1.0
 // License :    Copyright by University of Twente
 // Description : Longest Prefix Matching
@@ -29,7 +29,6 @@
 
 class TreeNode
 {
-
 public:
    TreeNode *leftPtr;       // pointer to left subtree
    int port;                // Interface number
@@ -133,7 +132,7 @@ public:
         }
 
 
-        else 
+        else
         // First bit of the IP address == 0 
         {
             if ((ptr)->leftPtr == nullptr) {
