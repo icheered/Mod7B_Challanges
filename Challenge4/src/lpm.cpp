@@ -156,7 +156,7 @@ public:
 
 // Create lookup table (prefix length is always larger than 8, we don't have to check the first 8 bits)
 // This will create 256 (small) binary trees
-Tree portTree[512];
+Tree portTree[256];
 
 
 void init() {
