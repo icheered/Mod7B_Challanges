@@ -34,9 +34,10 @@ namespace my_protocol {
         framework::LinkLayer* linkLayer;
 
         // You can use this data structure to store your routing table.
-        int tickCounter = 0;
+        int tickCounter = 0;    // For debugging
         std::map<int32_t, my_protocol::MyRoute> myRoutingTable;
         std::vector<int32_t> neighbourTable;
+        int timeout = 0;
     };
 
 } /* namespace my_protocol */

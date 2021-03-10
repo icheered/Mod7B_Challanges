@@ -28,31 +28,32 @@ namespace my_protocol {
         std::cout << "This is node: " << this->linkLayer->getOwnAddress() << std::endl;
     }
 
-void MyRoutingProtocol::tick(std::vector<framework::PacketWithLinkCost> packetsWithLinkCosts) {
+    void MyRoutingProtocol::tick(std::vector<framework::PacketWithLinkCost> packetsWithLinkCosts) {
+        if(timeout) {   // Brute force way of allowing new data propagation
+            timeout -= 1;
+            return;
+        }
         // Get the address of this node
         int32_t myAddress = this->linkLayer->getOwnAddress();
 
-        // print something useful for debugging
+        // rint something useful for debugging
         std::cout << "tick:  " << tickCounter << ";"  << packetsWithLinkCosts.size() << " packets\n";
         tickCounter++;
 
-        // Process the incoming packets
+        
         // Keep track of the neighbours to know when one dies
         std::vector<int32_t> currentNeighbours;
-        size_t i;
-        for (i = 0; i < packetsWithLinkCosts.size(); i++) {
-            framework::Packet packet = packetsWithLinkCosts[i].packet;
-            int32_t neighbour = packet.getSourceAddress();         // from whom is the packet?
 
-            // Keep track of which neighbours are alive initially
+        // Process the incoming packets
+        for (size_t i = 0; i < packetsWithLinkCosts.size(); i++) {
+            framework::Packet packet = packetsWithLinkCosts[i].packet;
+            int32_t neighbour = packet.getSourceAddress(); 
+
+
+            // Keep track of which neighbours are alive
             bool inTable = false;
-            for (const auto& entry : neighbourTable) { //add routing table to dataTable
-                if(entry == neighbour) inTable = true;
-            }
-            if(!inTable) {
-                std::cout << "New Neighbour: " << neighbour << std::endl;
-                neighbourTable.push_back(neighbour);
-            }
+            for (const auto& entry : neighbourTable) { if(entry == neighbour) inTable = true;}
+            if(!inTable) { neighbourTable.push_back(neighbour); }
 
 
             // Keep track of the neighbours that send something during this run
@@ -60,9 +61,8 @@ void MyRoutingProtocol::tick(std::vector<framework::PacketWithLinkCost> packetsW
 
 
 
-
-            int32_t linkcost = packetsWithLinkCosts[i].linkCost;   // what's the link cost from/to this neighbour?
-            framework::DataTable *dt = packet.getDataTable();      // other data contained in the packet
+            int32_t linkcost = packetsWithLinkCosts[i].linkCost;   
+            framework::DataTable *dt = packet.getDataTable(); 
             std::cout << "received packet from " << neighbour << " with "
                 << dt->getNRows() << " rows and "
                 << dt->getNColumns() << " columns of data\n";
@@ -71,9 +71,11 @@ void MyRoutingProtocol::tick(std::vector<framework::PacketWithLinkCost> packetsW
             int32_t destAddress = neighbour;
             int32_t destCost = 0;
 
-            //add the neighbours, better routes will be overriden anyway
-            if (myRoutingTable.count(destAddress)) { //if the destination address allready exists:
-                if (myRoutingTable[destAddress].cost > linkcost) { //compare if the existing entry has higher link cost, if not add entry
+            // Check if the destination address allready exists:
+            if (myRoutingTable.count(destAddress)) { 
+
+                // Compare if the existing entry has higher link cost, if not add entry
+                if (myRoutingTable[destAddress].cost > linkcost) { 
                     my_protocol::MyRoute r;
                     r.nextHop = neighbour;
                     r.cost = linkcost + destCost;
@@ -84,7 +86,9 @@ void MyRoutingProtocol::tick(std::vector<framework::PacketWithLinkCost> packetsW
                     myRoutingTable[destAddress] = r;
                 }
             }
-            else { // if it does not exist yet just add it
+
+            // if it does not exist yet just add it
+            else { 
                 my_protocol::MyRoute r;
                 r.nextHop = neighbour;
                 r.cost = linkcost + destCost;
@@ -97,7 +101,7 @@ void MyRoutingProtocol::tick(std::vector<framework::PacketWithLinkCost> packetsW
 
 
 
-            // go through the datatable row by row
+            // Go through the datatable row by row
             for (int j = 0; j < dt->getNRows(); j++) {
                 int32_t destAddress = dt->get(j, 0);
                 int32_t destCost = dt->get(j, 1);
@@ -107,7 +111,8 @@ void MyRoutingProtocol::tick(std::vector<framework::PacketWithLinkCost> packetsW
                 int32_t destHop4 = dt->get(j, 5);
 
                 
-                if (destAddress == myAddress) continue; //check if myAddress is entry of data table, if yes ignore it
+                // Check if this node is part of the route, if yes ignore it
+                if (destAddress == myAddress) continue; 
                 if(destHop1 == myAddress) continue;
                 if(destHop2 == myAddress) continue;
                 if(destHop3 == myAddress) continue;
@@ -126,7 +131,20 @@ void MyRoutingProtocol::tick(std::vector<framework::PacketWithLinkCost> packetsW
                         myRoutingTable[destAddress].Hop4 = 0;
                         continue;
                     }
-                    else if (myRoutingTable[destAddress].cost > destCost + linkcost) { //compare if the existing entry has higher link cost, if not add entry
+                    else if(myRoutingTable[destAddress].nextHop == neighbour && (myRoutingTable[destAddress].cost < destCost + linkcost)){
+                        // Link cost increased, Treat it as a broken link
+                        for (auto currentNeighbourEntry = currentNeighbours.begin(); currentNeighbourEntry != currentNeighbours.end(); ) {
+                            if (*currentNeighbourEntry == neighbour) {
+                                currentNeighbourEntry = currentNeighbours.erase(currentNeighbourEntry);
+                            } else {
+                                ++currentNeighbourEntry;
+                            }
+                        }
+                        timeout = 5;
+                    }
+                    
+                    // Compare if the existing entry has higher link cost, if not add entry
+                    else if (myRoutingTable[destAddress].cost > destCost + linkcost) { 
                         std::cout << "Better route: " << myAddress << "->" << destAddress <<". " << myRoutingTable[destAddress].cost << ">" << destCost + linkcost << std::endl;
                         my_protocol::MyRoute r;
                         r.nextHop = neighbour;
@@ -136,27 +154,21 @@ void MyRoutingProtocol::tick(std::vector<framework::PacketWithLinkCost> packetsW
                         r.Hop3 = destHop3;
                         r.Hop4 = destHop4;
                         
-
                         if(destHop1 == 0){r.Hop1 = neighbour;
                         } else if(destHop2 == 0){r.Hop2 = neighbour;
                         } else if(destHop3 == 0){r.Hop3 = neighbour;
                         } else if(destHop4 == 0){r.Hop4 = neighbour;}
                         myRoutingTable[destAddress] = r;
-                        //std::cout << "Nexthop: " << myRoutingTable[destAddress].nextHop << ", Cost: " << myRoutingTable[destAddress].cost << std::endl;
                     }
-                } else { // if it does not exist yet just add it
-                    if (destCost > 999999) {
-                        std::cout << "Received a disconnected node path" << std::endl;
-                        continue;
-                    }
-                    //std::cout << "New route: " << myAddress << "->" << destAddress << ": " << destCost + linkcost << std::endl;
+                } else { 
+                    // If the route does not exist yet just add it
                     my_protocol::MyRoute r;
                     r.nextHop = neighbour;
                     r.cost = linkcost + destCost;
-                    r.Hop1 = neighbour;
-                    r.Hop2 = 0;
-                    r.Hop3 = 0;
-                    r.Hop4 = 0;
+                    r.Hop1 = destHop1;
+                    r.Hop2 = destHop2;
+                    r.Hop3 = destHop3;
+                    r.Hop4 = destHop4;
                     myRoutingTable[destAddress] = r;
                 }
             }
@@ -164,23 +176,9 @@ void MyRoutingProtocol::tick(std::vector<framework::PacketWithLinkCost> packetsW
         
 
 
-        
-        std::cout << "Current N="<<currentNeighbours.size() << ", [";
-        for (const auto& entry : currentNeighbours) {
-            std::cout << entry << ", ";
-        }
-        std::cout << "]\n";
-
-        std::cout << "Known N="<<neighbourTable.size() << ", [";
-        for (const auto& entry : neighbourTable) {
-            std::cout << entry << ", ";
-        }
-        std::cout << "]\n";
-
         // Check if a neighbour dropped out
         if(currentNeighbours.size() < neighbourTable.size()) {
             std::cout << "A neighbour disappeared" << std::endl;
-            // This operation is very inefficient if there is a large number of neighbours but since in our scenario there are only 6 nodes it should be fine
             for (const auto& neighbourEntry : neighbourTable) {
                 bool exists = false;
                 for (const auto& currentNeighbourEntry : currentNeighbours) {
@@ -192,7 +190,6 @@ void MyRoutingProtocol::tick(std::vector<framework::PacketWithLinkCost> packetsW
                     // We found the missing neighbour
                     // Set the cost to an arbitrary large number (1 mil)
                     for (auto& removeNeighbour : myRoutingTable) {
-                        //std::cout << "Nexthop" << removeNeighbour.second.nextHop << std::endl;
                         if(removeNeighbour.second.nextHop == neighbourEntry || removeNeighbour.second.Hop1 == neighbourEntry || removeNeighbour.second.Hop2 == neighbourEntry || removeNeighbour.second.Hop3 == neighbourEntry || removeNeighbour.second.Hop4 == neighbourEntry ){
                             removeNeighbour.second.cost = 1000000;
                             removeNeighbour.second.nextHop == 0;
@@ -207,38 +204,25 @@ void MyRoutingProtocol::tick(std::vector<framework::PacketWithLinkCost> packetsW
             }
         }
 
-        // then send out one (or more, if you want) distance vector packets
-        // the actual distance vector data must be stored in the DataTable structure
-        framework::DataTable dt = framework::DataTable(6);   // the 3 is the number of columns, you can change this
-        for (const auto& entry : myRoutingTable) { //add routing table to dataTable
+
+        // Create the datatable with fastest known routes
+        framework::DataTable dt = framework::DataTable(6);   
+        for (const auto& entry : myRoutingTable) { 
             std::vector<int32_t> addingEntry;
-            addingEntry.push_back(entry.first);
-            addingEntry.push_back(entry.second.cost);
-            addingEntry.push_back(entry.second.Hop1);
-            addingEntry.push_back(entry.second.Hop2);
+            addingEntry.push_back(entry.first);         //Target
+            addingEntry.push_back(entry.second.cost);   //Cost
+            addingEntry.push_back(entry.second.Hop1);   //First hop from target
+            addingEntry.push_back(entry.second.Hop2);   //Second hop from target
             addingEntry.push_back(entry.second.Hop3);
             addingEntry.push_back(entry.second.Hop4);
 
-            std::cout << "Entry: [t=" << addingEntry[0] << ", c=" << addingEntry[1] << ", " << addingEntry[2] << ", " << addingEntry[3] << ", " << addingEntry[4] << ", " << addingEntry[5] << "]\n";
-
-            //std::cout << "[" << addingEntry[0] << ", " << addingEntry[1] << "]" << std::endl;
+            //std::cout << "Entry: [t=" << addingEntry[0] << ", c=" << addingEntry[1] << ", " << addingEntry[2] << ", " << addingEntry[3] << ", " << addingEntry[4] << ", " << addingEntry[5] << "]\n";
             dt.addRow(addingEntry);
         }
 
-
-
-
-        // next, actually send out the packet, with our own address as the source address
-        // and 0 as the destination address: that's a broadcast to be received by all neighbours.
+        // Send out the packet, with our own address as the source address
         framework::Packet pkt = framework::Packet(myAddress, 0, &dt);
         this->linkLayer->transmit(pkt);
-
-        /*
-         Instead of using Packet with a DataTable you may also use Packet with a std::vector<unsigned char>
-         as data part, if you really want to send your own data structure yourself.
-         Read the documentation in Packet.h to see how you can do this.
-         PLEASE NOTE! Although we provide this option we do not support it.
-         */
     }
 
     std::map<int32_t, int32_t> MyRoutingProtocol::getForwardingTable() {
