@@ -13,6 +13,15 @@
  **************************************************************************
  */
 
+
+//==============================================================
+// Filename :   MyRoutingProtocol.cpp
+// Authors :    Tjeerd Bakker (s2097966) and Soenke van Loh (s2270862)
+// Version :    1
+// License :    
+// Description :Protocol for finding the fastest path
+//==============================================================
+
 #include "MyRoutingProtocol.h"
 
 namespace my_protocol {
@@ -50,9 +59,7 @@ namespace my_protocol {
             int32_t neighbour = packet.getSourceAddress(); 
 
 
-            // Keep track of which neighbours are alive
-            bool inTable = false;
-            for (const auto& entry : neighbourTable) { if(entry == neighbour) inTable = true;}
+            // Keep track of which neigwith a single step ighbourTable) { if(entry == neighbour) inTable = true;}
             if(!inTable) { neighbourTable.push_back(neighbour); }
 
 
@@ -131,7 +138,7 @@ namespace my_protocol {
                         myRoutingTable[destAddress].Hop4 = 0;
                         continue;
                     }
-                    else if(myRoutingTable[destAddress].nextHop == neighbour && (myRoutingTable[destAddress].cost < destCost + linkcost)){
+                    else if((myRoutingTable[destAddress].nextHop == neighbour) && (myRoutingTable[destAddress].cost < destCost + linkcost)){
                         // Link cost increased, Treat it as a broken link
                         for (auto currentNeighbourEntry = currentNeighbours.begin(); currentNeighbourEntry != currentNeighbours.end(); ) {
                             if (*currentNeighbourEntry == neighbour) {
@@ -140,7 +147,7 @@ namespace my_protocol {
                                 ++currentNeighbourEntry;
                             }
                         }
-                        timeout = 5;
+                        timeout = 1;
                     }
                     
                     // Compare if the existing entry has higher link cost, if not add entry

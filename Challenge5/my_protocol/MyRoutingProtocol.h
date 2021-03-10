@@ -13,6 +13,14 @@
  **************************************************************************
  */
 
+//==============================================================
+// Filename :   MyRoutingProtocol.h
+// Authors :    Tjeerd Bakker (s2097966) and Soenke van Loh (s2270862)
+// Version :    1
+// License :    
+// Description : Protocol for finding the fastest path
+//==============================================================
+
 #include <map>
 #include <vector>
 #include "MyRoute.h"
