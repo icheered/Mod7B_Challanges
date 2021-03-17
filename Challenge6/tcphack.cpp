@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <string.h>
+#include <iostream>
 
 
 int main(void) {
@@ -97,7 +98,8 @@ int main(void) {
     memset(urgentPointer, 0, sizeof(urgentPointer));
 
     //assign ipv6 values
-    payloadLength[0] = 0x14;
+    //payloadLength[1] = 0x14;
+    
     //assigning TCP values
     sourcePort[0] = 0x4d;
     sourcePort[1] = 0x20;
@@ -106,6 +108,7 @@ int main(void) {
     headerLengthAndFlags[0] = 0x50;
     headerLengthAndFlags[0] = 0x02; //set syn flag
     advertisedWindow[0] = 0x01; //arbitrary chosen
+
     //assigning additional data
 
     //fill the packet
@@ -137,7 +140,8 @@ int main(void) {
     ......
     */
 
-    send(txpkt, 60);    // send the packet, with a length of 80 bytes
+    send(txpkt, 40);    // send the packet, with a length of 60 
+    std::cout << "packet send" << std::endl;
 
     while (!done) {
         unsigned char *rxpkt = receive(500); // check for reception of a packet, but wait at most 500 ms
