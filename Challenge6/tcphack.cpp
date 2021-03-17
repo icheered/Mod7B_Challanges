@@ -27,8 +27,8 @@ int main(void) {
     //parts of the ipv6 header
     unsigned char Version3TrafficClass12FlowLabel[4];
     unsigned char payloadLength[2];
-    unsigned char nextHeader = 0;
-    unsigned char HopLimit = 0;
+    unsigned char nextHeader[1] = { 0 };
+    unsigned char HopLimit[1] = { 0 };
     unsigned char sourceAddr[16];
     unsigned char destAddr[16];
     //parts of the tcp header
@@ -37,9 +37,8 @@ int main(void) {
     unsigned char destinationPort[2];
     unsigned char seqNumber[4];
     unsigned char ackNumber[4];
-    unsigned char headerLength;
-    unsigned char flags = 0;
-    unsigned char advertisedReceiveWindow[2];
+    unsigned char headerLengthAndFlags[2];
+    unsigned char advertisedWindow[2];
     unsigned char TCPchecksum[2];
     unsigned char urgentPointer[2];
     
@@ -48,8 +47,8 @@ int main(void) {
     Version3TrafficClass12FlowLabel[0] = 0x60; // first byte of the IPv6 header contains version number in upper nibble
     memset(payloadLength, 0, sizeof(payloadLength));
     payloadLength[0] = 0x0008; //at least 8 byte tcp header
-    nextHeader = 0x06; //6 for TCP
-    HopLimit = 0x0a; //arbitrary value of 10 for the hop limit
+    nextHeader[0] = 0x06; //6 for TCP
+    HopLimit[0] = 0x0a; //arbitrary value of 10 for the hop limit
     //assigning my own ip as source addr
     sourceAddr[0] = 0x20;
     sourceAddr[1] = 0x03;
@@ -83,21 +82,51 @@ int main(void) {
     destAddr[12] = 0xfd;
     destAddr[13] = 0xff;
     destAddr[14] = 0x67;
-    destAddr[115] = 0x9f;
+    destAddr[15] = 0x9f;
 
 
     //setting all TCP arrays to zero initially
     memset(txpkt, 0, sizeof(txpkt));
+    memset(headerLengthAndFlags, 0, sizeof(headerLengthAndFlags));
+    memset(sourcePort, 0, sizeof(sourcePort));
     memset(destinationPort, 0, sizeof(destinationPort));
     memset(seqNumber, 0, sizeof(seqNumber));
     memset(ackNumber, 0, sizeof(ackNumber));
-    memset(advertisedReceiveWindow, 0, sizeof(advertisedReceiveWindow));
+    memset(advertisedWindow, 0, sizeof(advertisedWindow));
     memset(TCPchecksum, 0, sizeof(TCPchecksum));
     memset(urgentPointer, 0, sizeof(urgentPointer));
 
+    //assign ipv6 values
+    payloadLength[0] = 0x14;
+    //assigning TCP values
+    sourcePort[0] = 0x4d;
+    sourcePort[1] = 0x20;
+    destinationPort[0] = 0x1e;
+    destinationPort[1] = 0x1e;
+    headerLengthAndFlags[0] = 0x50;
+    headerLengthAndFlags[0] = 0x02; //set syn flag
+    advertisedWindow[0] = 0x01; //arbitrary chosen
+    //assigning additional data
 
-    
-
+    //fill the packet
+    //section ipv6 header
+    memcpy(txpkt, Version3TrafficClass12FlowLabel, sizeof(Version3TrafficClass12FlowLabel));
+    memcpy(txpkt + 4, payloadLength, sizeof(payloadLength));
+    memcpy(txpkt + 6, nextHeader, sizeof(nextHeader));
+    memcpy(txpkt + 7, HopLimit, sizeof(HopLimit));
+    memcpy(txpkt + 8, sourceAddr, sizeof(sourceAddr));
+    memcpy(txpkt + 24, destAddr, sizeof(destAddr));
+    //section TCP header
+    memcpy(txpkt + TCPoffset, sourcePort, sizeof(sourcePort));
+    memcpy(txpkt + TCPoffset + 2, destinationPort, sizeof(destinationPort));
+    memcpy(txpkt + TCPoffset + 4, seqNumber, sizeof(seqNumber));
+    memcpy(txpkt + TCPoffset + 8, ackNumber, sizeof(ackNumber));
+    memcpy(txpkt + TCPoffset + 12, headerLengthAndFlags, sizeof(headerLengthAndFlags));
+    memcpy(txpkt + TCPoffset + 14, advertisedWindow, sizeof(advertisedWindow));
+    memcpy(txpkt + TCPoffset + 16, TCPchecksum, sizeof(TCPchecksum));
+    memcpy(txpkt + TCPoffset + 18, urgentPointer, sizeof(urgentPointer));
+    //maybe section for more packet stuff?
+    int HeaderOffset = 60;
 
 
 
@@ -108,7 +137,7 @@ int main(void) {
     ......
     */
 
-    send(txpkt, 40);    // send the packet, with a length of 40 bytes
+    send(txpkt, 60);    // send the packet, with a length of 80 bytes
 
     while (!done) {
         unsigned char *rxpkt = receive(500); // check for reception of a packet, but wait at most 500 ms
