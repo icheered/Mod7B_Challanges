@@ -14,6 +14,7 @@
  */
 
 #include <map>
+#include <vector>
 #include "MyRoute.h"
 #include "../framework/IRoutingProtocol.h"
 
@@ -33,8 +34,14 @@ namespace my_protocol {
         framework::LinkLayer* linkLayer;
         std::vector<int32_t> MyNeighbours;
         // You can use this data structure to store your routing table.
+        int tickCounter = 0;    // For debugging
         std::map<int32_t, my_protocol::MyRoute> myRoutingTable;
+<<<<<<< HEAD:Challenge5/my_protocol/MyRoutingProtocol_Soenke.h
         std::map<int32_t, std::vector<my_protocol::MyRoute>> myPossibleRoutes;
+=======
+        std::vector<int32_t> neighbourTable;
+        int timeout = 0;
+>>>>>>> 31c4f9025a1c35068511176e5ba7ebe79fd46c97:Challenge5/my_protocol/MyRoutingProtocol.h
     };
 
 } /* namespace my_protocol */
